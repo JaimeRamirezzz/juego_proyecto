@@ -8,3 +8,5 @@ while True:
         if event.type == pg.QUIT:
             pg.quit()
             exit()
+
+            #modificar
