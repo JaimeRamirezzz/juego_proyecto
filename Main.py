@@ -1,6 +1,6 @@
 import pygame as pg
 pg.init()
-
+print("prueba")
 window = pg.display.set_mode((1000, 700))
 while True:
     for event in pg.event.get():
