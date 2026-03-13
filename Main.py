@@ -1,7 +1,7 @@
 import pygame as pg
 pg.init()
 
-window = pg.display.set_mode((1500, 700))
+window = pg.display.set_mode((1000, 700))
 
 while True:
     for event in pg.event.get():
