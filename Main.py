@@ -3,7 +3,6 @@ pg.init()
 
 window = pg.display.set_mode((1000, 700))
 print(2)
-print("hola") 
 while True:
     for event in pg.event.get():
         if event.type == pg.QUIT:
