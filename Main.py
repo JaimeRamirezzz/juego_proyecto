@@ -61,11 +61,13 @@ class enfrentamiento:
     def pequeTurno(self):
         pass # self.orden.first = la entidad a la que le toca atacar
 
-        
+clock = pg.time.Clock()       
 while True:
     for event in pg.event.get():
         if event.type == pg.QUIT:
             pg.quit()
             exit()
 
-            #modificar 
+    pg.display.update()
+    clock.tick(60) #60 frame per sec (fps)
+    
