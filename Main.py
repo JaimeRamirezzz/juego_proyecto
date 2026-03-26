@@ -1,8 +1,9 @@
 import pygame as pg
+import math as m
+import random as r
 pg.init()
-print("prueba")
 window = pg.display.set_mode((1000, 700))
-estado_partida=0 # para controlar que se va a mostrar por pantalla y tambien si estamos en combate o en tienda o cosas asi
+estado_partida = 0 # para controlar que se va a mostrar por pantalla y tambien si estamos en combate o en tienda o cosas asi
 
 
 class NodoCola:
@@ -63,6 +64,61 @@ class enfrentamiento:
     def pequeTurno(self):
         pass # self.orden.first = la entidad a la que le toca atacar
 
+class Batalla:
+    def __init__(self, nombre, base_ataque, base_defensa, base_velocidad, nivel=1, es_boss = False):
+        self.nombre = nombre
+        self.nivel = nivel
+        self.ataque = base_ataque + (2 * nivel) + m.log(nivel + 1)
+        self.defensa = base_defensa + (1.5 * nivel) + m.log(nivel + 1)
+        self.velocidad = base_velocidad + (0.5 * nivel) + m.log(nivel + 1)
+
+        multiplicador_tpk = 20 if es_boss else 5
+        self.hp_max = (self.ataque * multiplicador_tpk) + (5 * m.log(nivel + 1))
+        self.hp_actual = self.hp_max
+
+        self.progreso_atb = 0 # Acumulador para el sistema de velocidad
+        self.vivo = True
+    
+    
+    def calcular_daño_base(self, objetivo):
+        denominador = self.ataque + objetivo.defensa
+        if denominador == 0: return 0
+
+        daño_base = (self.ataque ** 2) / denominador
+        return daño_base
+    
+    def realizar_ataque(self, objetivo, mod_elemental = 1.0, es_critico = False):
+        daño_base = self.calcular_daño_base(objetivo)
+
+        mod_critico = 2.0 if es_critico else 1.0
+        daño_final = daño_base * mod_elemental * mod_critico
+
+        variacion = r.uniform(0.9, 1.1) # variacion de +/- 10 %
+        daño_final *= variacion
+
+        return round(daño_final, 2)
+    
+    def recibir_daño(self, cantidad):
+        self.hp_actual -= cantidad
+        if self.hp_actual <= 0:
+            self.hp_actual = 0
+            self.vivo = False
+            print(f"{self.nombre} ha sido derrotado")
+
+    def actualizar_atb(self, d_time = 1):
+        self.progreso_atb += self.velocidad * d_time
+        if self.progreso_atb >= 100:
+            return True # puede actuar
+        return False
+         
+        
+        
+
+    
+
+
+
+
 clock = pg.time.Clock()       
 while True:
     for event in pg.event.get():
@@ -75,8 +131,20 @@ while True:
         pass
     elif estado_partida == 2:# corresponde a mostrar el recorrido del mundo en el que te encuentres
         pass
-    elif estado_partida == 3:# corresponde con un enfrentamiento
-        pass
+    elif estado_partida == 3:# corresponde con un enfrentamiento/batalla
+        dt = clock.get_time() / 1000.0
+       # for personaje in lista_combatientes:
+           # if personaje.actualizar_atb(dt):
+               # if personaje.es_jugador:
+                 #   esperando_input_jugador = True
+                   # personaje_actual = personaje
+                   # daño = personaje.realizar_ataque(objetivo)
+                  #  objetivo.recibir_daño(daño)
+                  #  personaje.progreso_atb = 0
+               # else:
+                   # ejetucar_ia_enemigo(personaje)
+                  #  personaje.progreso_atb = 0
+ 
     elif estado_partida == 4:# corresponde con la tienda
         pass
     elif estado_partida == 5:# para cuando subes de nivel un personaje y tienes que escojer el ataque que puede aprender
