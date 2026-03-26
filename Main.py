@@ -2,6 +2,8 @@ import pygame as pg
 pg.init()
 print("prueba")
 window = pg.display.set_mode((1000, 700))
+estado_partida=0 # para controlar que se va a mostrar por pantalla y tambien si estamos en combate o en tienda o cosas asi
+
 
 class NodoCola:
     def __init__(self, dato):
@@ -67,7 +69,18 @@ while True:
         if event.type == pg.QUIT:
             pg.quit()
             exit()
-
+    if estado_partida == 0:#para la parte recien iniciado el programa
+        pass
+    elif estado_partida == 1: # corresponde a la creacion de personajes
+        pass
+    elif estado_partida == 2:# corresponde a mostrar el recorrido del mundo en el que te encuentres
+        pass
+    elif estado_partida == 3:# corresponde con un enfrentamiento
+        pass
+    elif estado_partida == 4:# corresponde con la tienda
+        pass
+    elif estado_partida == 5:# para cuando subes de nivel un personaje y tienes que escojer el ataque que puede aprender
+        pass # este se puede eliminar para agregarlo al estado_partida = 1
     pg.display.update()
     clock.tick(60) #60 frame per sec (fps)
     
