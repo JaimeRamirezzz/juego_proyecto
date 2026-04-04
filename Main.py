@@ -1,9 +1,22 @@
 import pygame as pg
 import math as m
 import random as r
+from enum import Enum as e # para la clase animación, permite crearn grupos de constantes con nombre que son fáciles de leer y usar.
+
 pg.init()
 window = pg.display.set_mode((1000, 700))
 estado_partida = 0 # para controlar que se va a mostrar por pantalla y tambien si estamos en combate o en tienda o cosas asi
+
+#espacio variables:
+
+
+# Paleta de colores: (se pueden cambiar)
+GB_COLORS = {
+    'white': (224, 248, 208),
+    'light_gray': (136, 192, 112),
+    'dark_gray': (52, 104, 86),
+    'black': (8, 24, 32)
+}
 
 
 class NodoCola:
@@ -40,6 +53,163 @@ class ColaEnlazada: #Me suena que era mejor que la otra"
             self.rear = None
         return dato
 
+class AnimationState(e): # Estados de animación
+    IDLE = e.auto() # Quieto (2 frames: parpadeo)
+    WALK = e.auto() # Caminando (2-4 frames)
+    ATTACK = e.auto() # Ataque (2-3 frames, rápido)
+    HURT = e.auto() # Daño recibido (2 frames, flash)
+    FAINT = e.auto() # Debilitado (2-4 frames, caída)
+    SPECIAL = e.auto() # Movimiento especial (3-4 frames)
+   
+class AnimacionFrame: # representa un frame de animacion
+    surface: pg.surface
+    duration: int # duracion ciclos de animacion
+    offset: tuple[int, int] = (0, 0) # Offset de posición para efectos
+
+class spritesheets: # hoja de sprites
+    def __init__(self, image_path: r[str] = None):
+        self.sprite_size = 16
+        self.sprites: list[pg.Surface] = []
+
+        if image_path:
+            self.load_from_file(image_path)
+        else:
+          # Crear sprites placeholder estilo pokémon si no hay archivo  
+          self._create_placeholder_sprites()
+
+    def _create_placeholder_sprites(self): #Crea sprites placeholder
+        # Posición base:
+        sprite1 = pg.Surface((self.sprite_size, self.sprite_size))
+        sprite1.fill(GB_COLORS["white"])
+        # cuerpo
+        pg.draw.rect(sprite1, GB_COLORS["dark_gray"], (4, 4, 8, 8))
+        # ojos
+        pg.draw.rect(sprite1, GB_COLORS['black'], (5, 6, 2, 2))
+        pg.draw.rect(sprite1, GB_COLORS['black'], (9, 6, 2, 2))
+        self.sprites.append(sprite1)
+        
+        # Frame alternativo (ojos cerrados/posición diferente)
+        sprite2 = pg.Surface((self.sprite_size, self.sprite_size))
+        sprite2.fill(GB_COLORS['white'])
+        pg.draw.rect(sprite2, GB_COLORS['dark_gray'], (4, 5, 8, 7))  # Ligeramente más bajo
+        # Ojos cerrados (líneas)
+        pg.draw.line(sprite2, GB_COLORS['black'], (5, 7), (6, 7))
+        pg.draw.line(sprite2, GB_COLORS['black'], (9, 7), (10, 7))
+        self.sprites.append(sprite2)
+        
+        # Ataque (brazo/boca extendida)
+        sprite3 = pg.Surface((self.sprite_size, self.sprite_size))
+        sprite3.fill(GB_COLORS['white'])
+        pg.draw.rect(sprite3, GB_COLORS['dark_gray'], (4, 4, 8, 8))
+        pg.draw.rect(sprite3, GB_COLORS['black'], (5, 6, 2, 2))
+        pg.draw.rect(sprite3, GB_COLORS['black'], (9, 6, 2, 2))
+        # Boca abierta/ataque
+        pg.draw.rect(sprite3, GB_COLORS['black'], (6, 10, 4, 2))
+        self.sprites.append(sprite3)
+        
+        # Daño
+        sprite4 = pg.Surface((self.sprite_size, self.sprite_size))
+        sprite4.fill(GB_COLORS['white'])
+        # (colores invertidos)
+        pg.draw.rect(sprite4, GB_COLORS['light_gray'], (4, 4, 8, 8))
+        pg.draw.rect(sprite4, GB_COLORS['white'], (5, 6, 2, 2))
+        pg.draw.rect(sprite4, GB_COLORS['white'], (9, 6, 2, 2))
+        self.sprites.append(sprite4)
+    
+    def get_sprite(self, index: int):
+        return self.sprites[index % len(self.sprites)]
+    
+    def scale_sprite(self, sprite: pg.Surface, scale: int): # escala sprites sin romper la imagen
+        size = sprite.get_size()
+        return pg.transform.scale(sprite, (size[0] * scale, size[1] * scale))
+
+class EjecAnimacion: # sistema de animacion limitado
+    def __init__(self, sprite_sheet: spritesheets ):
+        self.sprite_sheet = sprite_sheet
+        self.current_state = AnimationState.IDLE
+        self.frame_index = 0
+        self.animation_timer = 0
+        self.facing_right = True
+        
+        # Configuración de animaciones (frame indices y duraciones)
+        self.animations = {
+            AnimationState.IDLE: {
+                'frames': [0, 1],  # Parpadeo
+                'durations': [30, 5],  # Mucho tiempo abierto, poco cerrado
+                'loop': True
+            },
+            AnimationState.WALK: {
+                'frames': [0, 1],
+                'durations': [8, 8],  # Más rápido
+                'loop': True
+            },
+            AnimationState.ATTACK: {
+                'frames': [2, 0],  # Frame de ataque y vuelta
+                'durations': [10, 10],
+                'loop': False,
+                'callback': 'return_to_idle'  # Volver a idle al terminar
+            },
+            AnimationState.HURT: {
+                'frames': [3, 0, 3, 0],  # Flash de daño
+                'durations': [5, 5, 5, 5],
+                'loop': False,
+                'callback': 'return_to_idle'
+            },
+            AnimationState.FAINT: {
+                'frames': [0, 1, 1, 1],  # Caída gradual
+                'durations': [10, 10, 10, 999],  # Último frame infinito
+                'loop': False
+            }
+        }
+        
+        # Shake effect para daño
+        self.shake_offset = (0, 0)
+        self.shake_intensity = 0
+        
+        # Blink effect (para daño)
+        self.blink = False
+    
+    def set_state(self, state: AnimationState):
+        # Cambia el estado de animación
+        if state != self.current_state:
+            self.current_state = state
+            self.frame_index = 0
+            self.animation_timer = 0
+            self.shake_intensity = 0
+    
+    def update(self):
+        # Actualiza la animación (llamar cada frame)
+        anim_config = self.animations[self.current_state]
+        current_frame_duration = anim_config['durations'][self.frame_index]
+        
+        self.animation_timer += 1
+        
+        # Efecto de shake si hay daño
+        if self.shake_intensity > 0:
+            import random
+            self.shake_offset = (
+                random.randint(-self.shake_intensity, self.shake_intensity),
+                random.randint(-self.shake_intensity, self.shake_intensity)
+            )
+            self.shake_intensity = max(0, self.shake_intensity - 1)
+        
+        # Cambiar frame si es tiempo
+        if self.animation_timer >= current_frame_duration:
+            self.animation_timer = 0
+            self.frame_index += 1
+            
+            # Manejar fin de animación
+            if self.frame_index >= len(anim_config['frames']):
+                if anim_config.get('loop', True):
+                    self.frame_index = 0
+                else:
+                    self.frame_index = len(anim_config['frames']) - 1
+                    # Callback para volver a idle
+                    if 'callback' in anim_config:
+                        if anim_config['callback'] == 'return_to_idle':
+                            self.set_state(AnimationState.IDLE)
+
+# Todavia hay que añadir cosas pero como no tenemos personajes definidos de momento se queda asi.
 
 class enfrentamiento:
     def __init__(self, ej1, ej2, ej3, ej4, mapa_tablero, enemigos_mapa = list):#ej = entidad jugable
