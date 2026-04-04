@@ -111,14 +111,6 @@ class Batalla:
             return True # puede actuar
         return False
          
-        
-        
-
-    
-
-
-
-
 clock = pg.time.Clock()       
 while True:
     for event in pg.event.get():
