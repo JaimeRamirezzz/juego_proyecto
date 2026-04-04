@@ -211,29 +211,87 @@ class EjecAnimacion: # sistema de animacion limitado
 
 # Todavia hay que añadir cosas pero como no tenemos personajes definidos de momento se queda asi.
 
+
+class Entidad:
+    id: int
+    nombre: str
+    velocidad_base: int
+    hp: int = 100
+    max_hp: int = 100
+    equipo: str = "neutral"  # "jugador", "enemigo", "neutral" o los equipos que pongamos
+    x: int = 0
+    y: int = 0
+    # estado de combate
+    estados: list[str] = pg.field(default_factory=list) # tipo aturdido o envenenado o algo asi
+    modificadores_vel: int = 0
+    def velocidad(self):
+        return max(0, self.velocidad_base + self.modificadores_vel)
+    def estar_vivo(self):
+        return self.hp > 0
+    def __lt__(self, other): # ordena por velocidad, osea el mayor primero.
+        return self.velocidad() > other.velocidad()
+    def __repr__(self):
+        return f"{self.nombre}(Vel:{self.velocidad()}, HP:{self.hp})"
+        
 class enfrentamiento:
-    def __init__(self, ej1, ej2, ej3, ej4, mapa_tablero, enemigos_mapa = list):#ej = entidad jugable
+    def __init__(self, ej1, ej2, ej3, ej4, mapa_tablero, enemigos_mapa: list = None):#ej = entidad jugable
         self._jugadas = 0
-        self._noEntidades = 4+len(enemigos_mapa) #para tener como de grande es la cola
-        self.tablero = mapa_tablero # porbisional asta el tablero
-        self.ej1 = ej1 #de momento se queda así, pero se puede modificar en el futuro
+        self.tablero = mapa_tablero # provisional hasta el tablero
+        self.aliados = [ej1, ej2, ej3, ej4] #de momento se queda así, pero se puede modificar en el futuro
+        self.enemigos = enemigos_mapa
+        self.todas_entidades = list[Entidad] =[]
+        self._actualizar_lista_entidades()
+        # cola de turnos ordenada por velocidad:
         self.orden = ColaEnlazada() # cola ordenada en funcion de la velocidad
-#    def granTurno(self): ##aún me queda por introducir y me faltan como me van a llegar las cosas para el enfrentamiento
-#        if self.orden.empty():
-#            self.recuentoEntidades = self._noEntidades
-#            entidad_mas_rapida_de_las_restantes = todas_las_entidades[1]
-#            for i in range(1,self._noEntidades):
-#                for j in todas_las_entidades_para_orden:
-#                    if entidad_mas_rapida_de_las_restantes.velocidad() < j
-#                        pass
-#                    else:
-#                        entidad_mas_rapida_de_las_restantes = j
-#                self.orden.push(entidad_mas_rapida_de_las_restantes)
-#                todas_las_entidades_para_orden.pop(entidad_mas_rapida_de_las_restantes)
-
-    def pequeTurno(self):
-        pass # self.orden.first = la entidad a la que le toca atacar
-
+        self.entidad_actual = e.Optional[Entidad] = None
+        # historial de turnos
+        self.historial_turnos: list[dict] = []
+        # estado de enfrentamiento:
+        self.activo = False
+        self.ganador = e.Optional[str] = None
+    def _actualizar_lista_entidades(self): # actualiza la lista uniendo aliados y enemigos
+        self.todas_entidades = []
+        for e in self.aliados + self.enemigos:
+            if e.esta_viva():
+                self.todas_entidades.append(e)
+    def _noEntidades(self):
+        return len(self.todas_entidades)
+    def calcular_orden(self):
+        participantes = [e for e in self.todas_entidades if e.esta_viva()]
+        # Ordenar por velocidad descendente (usando __lt__ de Entidad)
+        # Si hay empate, el que tenga menor ID va primero (más estable)
+        ordenados = sorted(participantes, key=lambda e: (-e.velocidad(), e.id))
+        return ordenados
+    def granTurno(self): #aún me queda por introducir y me faltan como me van a llegar las cosas para el enfrentamiento
+        self._actualizar_lista_entidades() # actualiza la lista de entidades vivas
+        if self._verificar_fin_combate():
+            return False # combate terminado
+        # para calcular nuevo orden:
+        orden_iniciativa = self.calcular_orden_iniciativa()
+        #limpiar y rellenar cola:
+        self.orden.clear()
+        for entidad in orden_iniciativa:
+            self.orden.push(entidad)
+        self._jugadas +=1
+        print(f"\n RONDA {self._jugadas} ")
+        print(f"Orden de iniciativa: {[e.nombre for e in orden_iniciativa]}")
+        return True
+    
+    def pequeTurno(self): # Avanza al siguiente turno dentro de la ronda actual y retorna la entidad a la que le toca actuar, o none si hay que iniciar nueva ronda.
+       if self.orden.empty():
+           return None
+       self.entidad_actual = self.orden.pop() # obtener la siguiente entidad
+       # verificacion de supervivencia
+       if not self.entidad_actual.esta_viva():
+           return self.pequeTurno() # saltar al siguiente
+       #historial:
+       self.historial_turnos.append({
+           "Ronda": self._jugadas,
+           "Entidad": self.entidad_actual.nombre,
+           "Equipo": self.entidad_actual.equipo # esto se puede modificar dependiendo de como sea el juego al final
+       })
+       print(f"\n -> Turno de: {self.entidad_actual.nombre} ({self.entidad_actual.equipo})")
+       return self.entidad_actual
 class Batalla:
     def __init__(self, nombre, base_ataque, base_defensa, base_velocidad, nivel=1, es_boss = False):
         self.nombre = nombre
