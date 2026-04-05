@@ -2,6 +2,7 @@ import pygame as pg
 import math as m
 import random as r
 from enum import Enum as e # para la clase animación, permite crearn grupos de constantes con nombre que son fáciles de leer y usar.
+import time
 
 pg.init()
 window = pg.display.set_mode((1000, 700))
@@ -32,7 +33,7 @@ class ColaEnlazada: #Me suena que era mejor que la otra"
         return self.front is None
     def first(self):
         if self.empty:
-            raise IndexError('No se puede consultar una cola vacia')
+            raise IndexError('No se puede consultar una cola vacía')
         return self.front.dato
     def push(self, dato):
         nuevo = NodoCola(dato)
@@ -45,7 +46,7 @@ class ColaEnlazada: #Me suena que era mejor que la otra"
             self.rear = nuevo
     def pop(self):
         if self.empty:
-            raise IndexError('No se puede eliminar un elementode una ola vacía')
+            raise IndexError('No se puede eliminar un elementode una cola vacía')
         dato = self.front.dato
         self.front = self.front.siguiente
         
@@ -147,16 +148,16 @@ class EjecAnimacion: # sistema de animacion limitado
                 'frames': [2, 0],  # Frame de ataque y vuelta
                 'durations': [10, 10],
                 'loop': False,
-                'callback': 'return_to_idle'  # Volver a idle al terminar
+                'callback': 'return_to_idle'  # volver a idle al terminar
             },
             AnimationState.HURT: {
-                'frames': [3, 0, 3, 0],  # Flash de daño
+                'frames': [3, 0, 3, 0],  # flash de daño
                 'durations': [5, 5, 5, 5],
                 'loop': False,
                 'callback': 'return_to_idle'
             },
             AnimationState.FAINT: {
-                'frames': [0, 1, 1, 1],  # Caída gradual
+                'frames': [0, 1, 1, 1],  # Caida gradual
                 'durations': [10, 10, 10, 999],  # Último frame infinito
                 'loop': False
             }
@@ -234,21 +235,21 @@ class Entidad:
         return f"{self.nombre}(Vel:{self.velocidad()}, HP:{self.hp})"
         
 class enfrentamiento:
-    def __init__(self, ej1, ej2, ej3, ej4, mapa_tablero, enemigos_mapa: list = None):#ej = entidad jugable
+    def __init__(self, jugadores: list[Batalla], mapa_tablero, enemigos: list[Batalla]):#ej = entidad jugable
         self._jugadas = 0
         self.tablero = mapa_tablero # provisional hasta el tablero
-        self.aliados = [ej1, ej2, ej3, ej4] #de momento se queda así, pero se puede modificar en el futuro
-        self.enemigos = enemigos_mapa
-        self.todas_entidades = list[Entidad] =[]
+        self.aliados = jugadores #de momento se queda así, pero se puede modificar en el futuro
+        self.enemigos = enemigos
+        self.todas_entidades = list[Batalla] = []
         self._actualizar_lista_entidades()
         # cola de turnos ordenada por velocidad:
         self.orden = ColaEnlazada() # cola ordenada en funcion de la velocidad
         self.entidad_actual = e.Optional[Entidad] = None
         # historial de turnos
-        self.historial_turnos: list[dict] = []
+        self.historial_turnos = []
         # estado de enfrentamiento:
         self.activo = False
-        self.ganador = e.Optional[str] = None
+        self.ganador = None
     def _actualizar_lista_entidades(self): # actualiza la lista uniendo aliados y enemigos
         self.todas_entidades = []
         for e in self.aliados + self.enemigos:
@@ -276,7 +277,22 @@ class enfrentamiento:
         print(f"\n RONDA {self._jugadas} ")
         print(f"Orden de iniciativa: {[e.nombre for e in orden_iniciativa]}")
         return True
-    
+    def actualizar_atb_todos(self):
+        # Sistema ATB: actualiza la barra de todos y retorna quién listo para actuar
+        # Llama esto en un loop o cada frame de tu juego
+        if not self.usar_atb:
+            return None
+            
+        listos = []
+        for entidad in self.todas_entidades:
+            if entidad.esta_viva() and entidad.actualizar_atb(self.delta_time):
+                listos.append(entidad)
+        
+        # Si hay múltiples listos, el más rápido actúa primero
+        if listos:
+            listos.sort(key=lambda e: -e.velocidad())
+            return listos[0]
+        return None
     def pequeTurno(self): # Avanza al siguiente turno dentro de la ronda actual y retorna la entidad a la que le toca actuar, o none si hay que iniciar nueva ronda.
        if self.orden.empty():
            return None
@@ -292,10 +308,85 @@ class enfrentamiento:
        })
        print(f"\n -> Turno de: {self.entidad_actual.nombre} ({self.entidad_actual.equipo})")
        return self.entidad_actual
+    def iniciar_combate(self, usar_atb = False):
+       # Inicializa el primer granTurno
+       self.usar_atb = usar_atb
+       self.activo = True
+       for e in self.todas_entidades:
+            e.reset_atb()
+        
+       if not usar_atb:
+        self.granTurno()
+        return self.pequeTurno()
+       return None # # En ATB, el primer listo se determina por actualizar_atb_todos()
+    
+    def finalizar_turno(self, acciones_realizadas = None):
+       # Llamar cuando una entidad termina su turno.
+       # opcionalmente registra que hizo.
+        if self.entidad_actual:
+            self.entidad_actual.reset_atb()  # Importante para ATB
+        
+        if acciones_realizadas:
+            self.historial_turnos[-1].update(acciones_realizadas)
+        
+        if not self.usar_atb and self.orden.empty():
+            return self.granTurno()
+        return True
+    
+    def _verificar_fin_combate(self) -> bool:
+       # Verifica si el combate ha terminado
+        aliados_vivos = any(e.esta_viva() for e in self.aliados)
+        enemigos_vivos = any(e.esta_viva() for e in self.enemigos)
+        
+        if not aliados_vivos:
+            self.ganador = "enemigos"
+            self.activo = False
+            print("¡Derrota! , Todos los aliados han caído.")
+            return True
+        
+        if not enemigos_vivos:
+            self.ganador = "jugadores"
+            self.activo = False
+            print("¡Victoria! , Todos los enemigos han sido derrotados.")
+            return True
+        
+        return False
+    
+    def get_entidad_actual(self):
+        # Obtiene quién tiene el turno actual sin avanzar
+        return self.entidad_actual
+    
+    def es_turno_jugador(self):
+       # Verifica si el turno actual es de un aliado
+        return self.entidad_actual and self.entidad_actual in self.aliados
+    
+    def obtener_objetivos_validos(self, atacante: Batalla = None):
+        # obtiene objetivos válidos para atacar
+        atacante = atacante or self.entidad_actual
+        if not atacante:
+            return []
+        
+        if atacante.equipo == "aliados":
+            return [e for e in self.enemigos if e.esta_viva()]
+        return [j for j in self.aliados if j.esta_viva()]
+    def mostrar_estado(self):
+       #  Visualizacion del combate
+        print(f"\n ESTADO RONDA {self._jugadas}")
+        print("ALIADOS:")
+        for j in self.aliados:
+            print(f"  {j}")
+        print("ENEMIGOS:")
+        for e in self.enemigos:
+            print(f"  {e}")
 class Batalla:
-    def __init__(self, nombre, base_ataque, base_defensa, base_velocidad, nivel=1, es_boss = False):
+    _id_counter = 0 # para generar ids unicos
+    def __init__(self, nombre, base_ataque, base_defensa, base_velocidad, nivel=1, es_boss = False, equipo = None):
+        Batalla._id_counter += 1
+        self.id = Batalla._id_counter
         self.nombre = nombre
         self.nivel = nivel
+        self.equipo = equipo
+        # stats "orignales"
         self.ataque = base_ataque + (2 * nivel) + m.log(nivel + 1)
         self.defensa = base_defensa + (1.5 * nivel) + m.log(nivel + 1)
         self.velocidad = base_velocidad + (0.5 * nivel) + m.log(nivel + 1)
@@ -303,10 +394,21 @@ class Batalla:
         multiplicador_tpk = 20 if es_boss else 5
         self.hp_max = (self.ataque * multiplicador_tpk) + (5 * m.log(nivel + 1))
         self.hp_actual = self.hp_max
+        # posición en el mapa
+        self.x = 0
+        self.y = 0
 
-        self.progreso_atb = 0 # Acumulador para el sistema de velocidad
+        self.progreso_atb = 0 # Acumulador para el sistema de velocidad (active time battle)
         self.vivo = True
+
+        # Estados y modificadores (para compatibilidad con Enfrentamiento)
+        self.estados = []
+        self.modificadores_vel = 0
+    def velocidad(self):
+        return max(0.1, self.velocidad_base + self.modificadores_vel)  # Evitar 0 o negativo
     
+    def esta_vivo(self):
+        return self.vivo and self.hp_actual > 0
     
     def calcular_daño_base(self, objetivo):
         denominador = self.ataque + objetivo.defensa
@@ -338,6 +440,23 @@ class Batalla:
         if self.progreso_atb >= 100:
             return True # puede actuar
         return False
+    
+    def reset_atb(self):
+        #reset manual del ATB (util al inicio de combate)
+        self.progreso_atb = 0
+    def __lt__(self, other):
+        #Para ordenar por velocidad en "iniciativa"
+        return self.velocidad() > other.velocidad()
+    
+    def __repr__(self):
+        return f"{self.nombre}(V:{self.velocidad():.1f}, HP:{self.hp_actual:.0f}/{self.hp_max:.0f})"
+    
+    def __str__(self): # barra de vida 
+        atb_bar = int(self.progreso_atb / 10)  # 0-10 barras
+        barra = "█" * atb_bar + "░" * (10 - atb_bar)
+        estado = "💀" if not self.vivo else "⚔️"
+        return f"{estado} {self.nombre} | ATB:[{barra}] {self.progreso_atb:.0f}% | HP:{self.hp_actual:.0f}"
+
          
 clock = pg.time.Clock()       
 while True:
@@ -353,17 +472,114 @@ while True:
         pass
     elif estado_partida == 3:# corresponde con un enfrentamiento/batalla
         dt = clock.get_time() / 1000.0
-       # for personaje in lista_combatientes:
-           # if personaje.actualizar_atb(dt):
-               # if personaje.es_jugador:
-                 #   esperando_input_jugador = True
-                   # personaje_actual = personaje
-                   # daño = personaje.realizar_ataque(objetivo)
-                  #  objetivo.recibir_daño(daño)
-                  #  personaje.progreso_atb = 0
-               # else:
-                   # ejetucar_ia_enemigo(personaje)
-                  #  personaje.progreso_atb = 0
+        if not enfrentamiento.activo:
+            print("\n" + "="*40)
+            print("  ⚔️  COMBATE INICIADO  ⚔️")
+            print("="*40)
+            entidad_actual = enfrentamiento.iniciar_combate(usar_atb=False)
+        
+        # mostar estado
+        print(f"\n--- RONDA {enfrentamiento._jugadas} ---")
+        print("TUS PERSONAJES:")
+        for e in enfrentamiento.aliados:
+            barra_hp = int((e.hp_actual/e.hp_max)*10)
+            hp_vis = "█"*barra_hp + "░"*(10-barra_hp)
+            vivo = "💀" if not e.esta_viva() else "⚔️"
+            print(f"  {vivo} {e.nombre:12} HP:[{hp_vis}] {e.hp_actual:.0f}")
+        
+        print("ENEMIGOS:")
+        for e in enfrentamiento.enemigos:
+            barra_hp = int((e.hp_actual/e.hp_max)*10)
+            hp_vis = "█"*barra_hp + "░"*(10-barra_hp)
+            vivo = "💀" if not e.esta_viva() else "👹"
+            print(f"  {vivo} {e.nombre:12} HP:[{hp_vis}] {e.hp_actual:.0f}")
+        
+        # procesar turno:
+        if entidad_actual and entidad_actual.esta_viva():
+            print(f"\n TURNO DE: {entidad_actual.nombre} ({entidad_actual.equipo}) <<<")
+            
+            # Si es enemigo -> IA automática
+            if entidad_actual.equipo == "enemigo":
+                print(f"{entidad_actual.nombre} ataca...")
+                time.sleep(1)
+                
+                objetivos = enfrentamiento.obtener_objetivos(entidad_actual)
+                if objetivos:
+                    # atacar al que tenga menos HP
+                    objetivo = min(objetivos, key=lambda x: x.hp_actual)
+                    daño = entidad_actual.realizar_ataque(objetivo)
+                    print(f"  ¡{objetivo.nombre} recibe {daño} de daño!")
+                    time.sleep(1)
+            
+            # Si es jugador -> Input
+            else:
+                print("\n¿Qué harás?")
+                print("1) Atacar")
+                print("2) Usar habilidad (no implementado)")
+                print("3) Usar objeto (no implementado)")
+                print("4) Huir")
+                
+                opcion = input("> ").strip()
+                
+                if opcion == "1":
+                    objetivos = enfrentamiento.obtener_objetivos(entidad_actual)
+                    if not objetivos:
+                        print("No hay objetivos...")
+                        continue
+                    
+                    print("\nObjetivos:")
+                    for i, obj in enumerate(objetivos, 1):
+                        print(f"  {i}. {obj.nombre} (HP: {obj.hp_actual:.0f})")
+                    
+                    try:
+                        sel = int(input("Elige objetivo: ")) - 1
+                        if 0 <= sel < len(objetivos):
+                            daño = entidad_actual.realizar_ataque(objetivos[sel])
+                            print(f"\n ¡{daño} de daño a {objetivos[sel].nombre}!")
+                            time.sleep(1)
+                        else:
+                            continue  # Turno inválido, repetir
+                    except ValueError:
+                        continue
+                
+                elif opcion == "4":
+                    # Huir (30% de éxito)
+                    if r.random() < 0.3:
+                        print("\n  🏃 ¡Escapaste del combate!")
+                        time.sleep(1)
+                        partida = 2
+                        break
+                    else:
+                        print("\n ¡No pudiste huir!")
+                        time.sleep(1)
+                
+                else:
+                    print("Opción no válida")
+                    continue  # Repetir turno
+        
+        # Verificar si alguien murió este turno
+        enfrentamiento._actualizar_lista_entidades()
+        
+        if not enfrentamiento.activo or enfrentamiento._verificar_fin_combate():
+            if enfrentamiento.ganador == "jugadores":
+                print("\n  ¡VICTORIA! ")
+                # Aquí: dar experiencia, drops, etc.
+            else:
+                print("\n  DERROTA ")
+                # Aquí: game over o volver al último checkpoint
+            
+            input("\nPresiona Enter para continuar...")
+            partida = 2  # Volver al mapa
+            break
+        
+        # Avanzar al siguiente turno
+        enfrentamiento.finalizar_turno()
+        entidad_actual = enfrentamiento.pequeTurno()
+        
+        # Si se acabó la ronda, nueva iniciativa
+        if entidad_actual is None:
+            if enfrentamiento.granTurno():
+                entidad_actual = enfrentamiento.pequeTurno()
  
     elif estado_partida == 4:# corresponde con la tienda
         pass
@@ -371,4 +587,3 @@ while True:
         pass # este se puede eliminar para agregarlo al estado_partida = 1
     pg.display.update()
     clock.tick(60) #60 frame per sec (fps)
-    
