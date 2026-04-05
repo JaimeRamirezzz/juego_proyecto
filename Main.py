@@ -3,6 +3,7 @@ import math as m
 import random as r
 from enum import Enum as e # para la clase animación, permite crearn grupos de constantes con nombre que son fáciles de leer y usar.
 import time
+from typing import Optional
 
 pg.init()
 window = pg.display.set_mode((1000, 700))
@@ -16,7 +17,11 @@ GB_COLORS = {
     'white': (224, 248, 208),
     'light_gray': (136, 192, 112),
     'dark_gray': (52, 104, 86),
-    'black': (8, 24, 32)
+    'black': (8, 24, 32),
+    "green_bright": (120, 200, 80),    # Zona movimiento
+    "red_bright": (200, 80, 80),       # Zona ataque  
+    "yellow_bright": (255, 220, 80),   # Seleccionada
+    "blue_bright": (100, 150, 255),    # Hover
 }
 
 
@@ -62,6 +67,55 @@ class AnimationState(e): # Estados de animación
     FAINT = e.auto() # Debilitado (2-4 frames, caída)
     SPECIAL = e.auto() # Movimiento especial (3-4 frames)
    
+class tipo_Casilla(e):
+    VACIA = e.auto()
+    OBSTACULO = e.auto()
+    PERSONAJE_JUGADOR = e.auto()
+    PERSONAJE_ENEMIGO = e.auto()
+    ZONA_MOVIMIENTO = e.auto()
+    ZONA_ATAQUE = e.auto()
+    SELECCIONADA = e.auto()
+    MOVER = e.auto()
+class Direccion(e):
+    UP = (0, -1)
+    DOWN = (0, 1)
+    LEFT = (-1, 0)
+    RIGHT = (1, 0)
+    UP_LEFT = (-1, -1)
+    UP_RIGHT = (1, -1)
+    DOWN_LEFT = (-1, 1)
+    DOWN_RIGHT = (1, 1)
+class Casilla:
+    fila: int          # Todo esto puede cambiarse pero de momento lo dejo asi
+    col: int
+    x: int
+    y: int
+    tamaño: int = 40
+    tipo: tipo_Casilla = tipo_Casilla.VACIA
+    entidad: Optional["Batalla"] = None # referencia a clase batalla
+    obstaculo: bool = False
+    # pathfinding
+    distancia: int = 0
+    visitada: bool = False
+    padre: Optional[tuple[int, int]] = None
+    def __post_init__(self):
+        self.rect = pg.Rect(self.x, self.y, self.tamaño, self.tamaño)
+        self.centro = (self.x + self.tamaño // 2, self.y +self.tamaño // 2)
+    def color_casilla(self): # Devuelve color segun el tipo de casilla
+        colores = {
+        tipo_Casilla.VACIA: GB_COLORS["white"],
+        tipo_Casilla.OBSTACULO: GB_COLORS["dark_gray"],
+        tipo_Casilla.PERSONAJE_JUGADOR: GB_COLORS["light_gray"],
+        tipo_Casilla.PERSONAJE_ENEMIGO: GB_COLORS["dark_gray"],
+        tipo_Casilla.ZONA_MOVIMIENTO: GB_COLORS["green_bright"],
+        tipo_Casilla.ZONA_ATAQUE: GB_COLORS["red_bright"],
+        tipo_Casilla.SELECCIONADA: GB_COLORS["yellow_bright"],
+        tipo_Casilla.MOVER: GB_COLORS["blue_bright"]
+        }
+        return colores.get(self.tipo, GB_COLORS["white"])
+
+
+
 class AnimacionFrame: # representa un frame de animacion
     surface: pg.surface
     duration: int # duracion ciclos de animacion
