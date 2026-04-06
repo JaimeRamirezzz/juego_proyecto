@@ -1,7 +1,8 @@
 import pygame as pg
 import math as m
 import random as r
-from enum import Enum as e # para la clase animación, permite crearn grupos de constantes con nombre que son fáciles de leer y usar.
+from enum import Enum as e
+from dataclasses import dataclass, field
 import time
 from typing import Optional
 
@@ -9,7 +10,7 @@ pg.init()
 window = pg.display.set_mode((1000, 700))
 estado_partida = 0 # para controlar que se va a mostrar por pantalla y tambien si estamos en combate o en tienda o cosas asi
 
-#espacio variables:
+#espacio para las variables:
 
 
 # Paleta de colores: (se pueden cambiar)
@@ -113,8 +114,26 @@ class Casilla:
         tipo_Casilla.MOVER: GB_COLORS["blue_bright"]
         }
         return colores.get(self.tipo, GB_COLORS["white"])
+  #  def dibujar(self, superficie: , hover: bool = False): Para cuando tengamos en mapa definido 
+#class SistemaGRid:
+# def __init__(self, filas: int = 10, columnas: int = 10, 
+#                 tamaño_casilla: int = 40, offset_x: int = 50, offset_y: int = 100):
+#        self.filas = filas
+#       self.columnas = columnas
+#        self.tamaño_casilla = tamaño_casilla
+#        self.offset_x = offset_x
+#         self.offset_y = offset_y
+        
+        # Crear matriz de casillas
+#        self.casillas: List[List[Casilla]] = []
+#        self._crear_grid()
+        
+        # Estado de interacción
+#        self.casilla_hover: Optional[Casilla] = None
+#        self.casilla_seleccionada: Optional[Casilla] = None
+#        self.entidad_seleccionada: Optional['Batalla'] = None
 
-
+# continuará en cuanto estemos mas avanzados en el tema del mapa
 
 class AnimacionFrame: # representa un frame de animacion
     surface: pg.surface
@@ -265,6 +284,221 @@ class EjecAnimacion: # sistema de animacion limitado
                             self.set_state(AnimationState.IDLE)
 
 # Todavia hay que añadir cosas pero como no tenemos personajes definidos de momento se queda asi.
+class sistemagrid:
+    def __init__(self):
+        self.animacion = None # referencia opcional
+    def casilla_a_pixel(self, fila, col): # convierte grid a pixeles para las animaciones
+        casilla = self.obtener_casilla(fila, col)
+        return casilla.centro
+    def mover_entidad_con_animacion(self, entidad, nueva_fila, nueva_col, sistema_animacion, EjecAnimacion):
+        x_orig, y_orig = self.casilla_a_pixel(entidad.fila, entidad.col)
+        x_dest, y_dest = self.casilla_a_pixel(nueva_fila, nueva_col)
+        sistema_animacion.animar_movimiento(entidad, x_dest, y_dest) # Llamar al sistema de animacion existente
+        self.mover_entidad(entidad, nueva_fila, nueva_col) # Actualizar posicion logica
+
+class TipoTerreno(e):
+    TIERRA = e.auto()
+    HIERBA_ALTA = e.auto()
+    HIERBA_SECA = e.auto()
+    AGUA = e.auto()
+    LAVA = e.auto()
+    PIEDRA_CALIENTE = e.auto()
+    HIELO = e.auto()
+    ACIDO = e.auto()
+class Elemento(e):
+    NEUTRO = e.auto()
+    FUEGO = e.auto()
+    AGUA = e.auto()
+    ELECTRICO = e.auto()
+    HIELO = e.auto()
+    VENENO = e.auto()
+
+@dataclass
+class ModificadorElemental: # Como afecta el terreno a cada elemento 
+    potenciacion: float = 1.0
+    probabilidad_efecto: float = 0.0
+    daño_por_turno: int = 0
+    turnos_estado: int = 0
+
+@dataclass
+class EfectoTerreno:
+    nombre: str
+    descripcion: str
+    caminable: bool = True
+    modificadores: dict[Elemento, ModificadorElemental] = field(default_factory = dict)
+    interacciones: dict[TipoTerreno, callable] = field(default_factory = dict) # Qué pasa cuando interactúa con otro terreno
+    probabilidad_evento: float = 0.0 # Probabilidad de evento especial (resbalón, etc.)
+    requiere_objeto: Optional[str] = None # Objeto que anula efectos negativos
+    def obtener_modificador(self, elemento: Elemento) -> ModificadorElemental:
+        return self.modificadores.get(elemento, ModificadorElemental())
+
+class EfectosTerrenoFactory: # Crea configuraciones de terreno predefinidas
+    @staticmethod
+    def crear_tierra() -> EfectoTerreno:
+        return EfectoTerreno(
+            nombre = "Tierra",
+            descripcion = "Terreno normal sin efectos ni consecuencias especiales",
+            caminable = True,
+            modificadores = {} # sin modificadores
+        )
+    @staticmethod
+    def crear_hierba_alta() -> EfectoTerreno:
+        return EfectoTerreno(
+            nombre="Hierba Alta",
+            descripcion="El fuego se propaga fácilmente aquí. Ataques de fuego potenciados.",
+            caminable=True,
+            modificadores={
+                Elemento.FUEGO: ModificadorElemental(
+                    potenciacion=1.5,
+                    probabilidad_efecto=0.3,
+                    daño_por_turno=5,
+                    turnos_estado=2
+                )
+            },
+            interacciones={
+                # Si entra fuego, se convierte en hierba seca
+                TipoTerreno.HIERBA_SECA: lambda casilla: casilla.cambiar_terreno(TipoTerreno.HIERBA_SECA)
+            }
+        )
+    
+    @staticmethod
+    def crear_hierba_seca() -> EfectoTerreno:
+        return EfectoTerreno(
+            nombre="Hierba Seca",
+            descripcion="¡Peligro de incendio! El fuego es extremadamente potente.",
+            caminable=True,
+            modificadores={
+                Elemento.FUEGO: ModificadorElemental(
+                    potenciacion=2.0,
+                    probabilidad_efecto=0.6,
+                    daño_por_turno=8,
+                    turnos_estado=3
+                ),
+                Elemento.AGUA: ModificadorElemental(
+                    potenciacion=1.0,  # Normal
+                    probabilidad_efecto=1.0  # Siempre apaga el fuego
+                )
+            },
+            interacciones={
+                # Agua vuelve a hierba normal
+                TipoTerreno.TIERRA: lambda casilla: casilla.cambiar_terreno(TipoTerreno.TIERRA)
+            }
+        )
+    
+    @staticmethod
+    def crear_agua() -> EfectoTerreno:
+        return EfectoTerreno(
+            nombre="Agua",
+            descripcion="Apaga el fuego y potencia ataques eléctricos. Se propaga.",
+            caminable=True,  # Asumimos que pueden nadar o es poco profunda
+            modificadores={
+                Elemento.FUEGO: ModificadorElemental(
+                    potenciacion=0.5,  # Mitad de daño
+                    probabilidad_efecto=1.0,  # Siempre apaga
+                    daño_por_turno=0,
+                    turnos_estado=0
+                ),
+                Elemento.ELECTRICO: ModificadorElemental(
+                    potenciacion=1.5,  # Afecta área
+                    probabilidad_efecto=0.4,
+                    daño_por_turno=0,
+                    turnos_estado=0
+                )
+            },
+            interacciones={
+                # Agua + Lava = Piedra caliente
+                TipoTerreno.PIEDRA_CALIENTE: lambda casilla: casilla.cambiar_terreno(TipoTerreno.PIEDRA_CALIENTE),
+                # Agua + Hierba seca = Tierra
+                TipoTerreno.TIERRA: lambda casilla: casilla.cambiar_terreno(TipoTerreno.TIERRA)
+            }
+        )
+    
+    @staticmethod
+    def crear_lava() -> EfectoTerreno:
+        return EfectoTerreno(
+            nombre="Lava",
+            descripcion="Daño extremo por fuego. El agua la solidifica.",
+            caminable=True,  # Solo inmunes al fuego
+            modificadores={
+                Elemento.FUEGO: ModificadorElemental(
+                    potenciacion=2.5,
+                    probabilidad_efecto=0.0,  # Ya están en lava
+                    daño_por_turno=15,
+                    turnos_estado=0
+                ),
+                Elemento.AGUA: ModificadorElemental(
+                    potenciacion=0.0,  # No daño directo, pero transforma terreno
+                    probabilidad_efecto=1.0
+                )
+            },
+            interacciones={
+                # Agua convierte lava en piedra caliente
+                TipoTerreno.PIEDRA_CALIENTE: lambda casilla: casilla.cambiar_terreno(TipoTerreno.PIEDRA_CALIENTE)
+            }
+        )
+    
+    @staticmethod
+    def crear_piedra_caliente() -> EfectoTerreno:
+        """Lava + Agua = Obstáculo dañino"""
+        return EfectoTerreno(
+            nombre="Piedra Caliente",
+            descripcion="Restos de lava solidificada. Causa quemaduras. Agua menos efectiva.",
+            caminable=True,  # Se puede caminar pero duele
+            modificadores={
+                Elemento.FUEGO: ModificadorElemental(
+                    potenciacion=1.0,  # Normal para fuego
+                    probabilidad_efecto=0.0,
+                    daño_por_turno=5,  # Daño residual por calor
+                    turnos_estado=2
+                ),
+                Elemento.AGUA: ModificadorElemental(
+                    potenciacion=0.5,  # Eficacia reducida 50%
+                    probabilidad_efecto=0.0
+                )
+            }
+        )
+    
+    @staticmethod
+    def crear_hielo() -> EfectoTerreno:
+        return EfectoTerreno(
+            nombre="Hielo",
+            descripcion="Superficie resbaladiza. El electricidad se debilita.",
+            caminable=True,
+            modificadores={
+                Elemento.ELECTRICO: ModificadorElemental(
+                    potenciacion=0.7,  # Menos conducción
+                    probabilidad_efecto=0.0
+                ),
+                Elemento.FUEGO: ModificadorElemental(
+                    potenciacion=1.3,  # Derrite hielo
+                    probabilidad_efecto=0.5,
+                    daño_por_turno=0,
+                    turnos_estado=0
+                )
+            },
+            probabilidad_evento=0.25,  # 25% de resbalarse
+            requiere_objeto="botas_anti_resbalantes"
+        )
+    
+    @staticmethod
+    def crear_acido() -> EfectoTerreno:
+        return EfectoTerreno(
+            nombre="Ácido",
+            descripcion="Sustancia corrosiva. Daño continuo sin cura conocida.",
+            caminable=True,
+            modificadores={
+                Elemento.VENENO: ModificadorElemental(
+                    potenciacion=2.0,
+                    probabilidad_efecto=0.8,
+                    daño_por_turno=10,
+                    turnos_estado=5
+                )
+            },
+            # No tiene interacciones - no se puede eliminar
+        )
+
+
+
 
 
 class Entidad:
