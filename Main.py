@@ -99,6 +99,7 @@ class Casilla:
     distancia: int = 0
     visitada: bool = False
     padre: Optional[tuple[int, int]] = None
+   # self.terreno = CasillaTerreno(fila, col) PARA CUANDO TENGAMOS LOS MAPAS
     def __post_init__(self):
         self.rect = pg.Rect(self.x, self.y, self.tamaño, self.tamaño)
         self.centro = (self.x + self.tamaño // 2, self.y +self.tamaño // 2)
@@ -115,24 +116,6 @@ class Casilla:
         }
         return colores.get(self.tipo, GB_COLORS["white"])
   #  def dibujar(self, superficie: , hover: bool = False): Para cuando tengamos en mapa definido 
-#class SistemaGRid:
-# def __init__(self, filas: int = 10, columnas: int = 10, 
-#                 tamaño_casilla: int = 40, offset_x: int = 50, offset_y: int = 100):
-#        self.filas = filas
-#       self.columnas = columnas
-#        self.tamaño_casilla = tamaño_casilla
-#        self.offset_x = offset_x
-#         self.offset_y = offset_y
-        
-        # Crear matriz de casillas
-#        self.casillas: List[List[Casilla]] = []
-#        self._crear_grid()
-        
-        # Estado de interacción
-#        self.casilla_hover: Optional[Casilla] = None
-#        self.casilla_seleccionada: Optional[Casilla] = None
-#        self.entidad_seleccionada: Optional['Batalla'] = None
-
 # continuará en cuanto estemos mas avanzados en el tema del mapa
 
 class AnimacionFrame: # representa un frame de animacion
@@ -497,9 +480,296 @@ class EfectosTerrenoFactory: # Crea configuraciones de terreno predefinidas
             # No tiene interacciones - no se puede eliminar
         )
 
+class RegistroTerrenos:
+   # Mantiene todas las configuraciones de terreno
+    
+    _efectos: dict[TipoTerreno, EfectoTerreno] = {}
+    
+    @classmethod
+    def inicializar(cls):
+        # Crea todas las configuraciones de terreno
+        cls._efectos = {
+            TipoTerreno.TIERRA: EfectosTerrenoFactory.crear_tierra(),
+            TipoTerreno.HIERBA_ALTA: EfectosTerrenoFactory.crear_hierba_alta(),
+            TipoTerreno.HIERBA_SECA: EfectosTerrenoFactory.crear_hierba_seca(),
+            TipoTerreno.AGUA: EfectosTerrenoFactory.crear_agua(),
+            TipoTerreno.LAVA: EfectosTerrenoFactory.crear_lava(),
+            TipoTerreno.PIEDRA_CALIENTE: EfectosTerrenoFactory.crear_piedra_caliente(),
+            TipoTerreno.HIELO: EfectosTerrenoFactory.crear_hielo(),
+            TipoTerreno.ACIDO: EfectosTerrenoFactory.crear_acido(),
+        }
+    
+    @classmethod
+    def obtener(cls, tipo: TipoTerreno) -> EfectoTerreno:
+        if not cls._efectos:
+            cls.inicializar()
+        return cls._efectos.get(tipo, cls._efectos[TipoTerreno.TIERRA])
+    
+    @classmethod
+    def todos(cls) -> dict[TipoTerreno, EfectoTerreno]:
+        if not cls._efectos:
+            cls.inicializar()
+        return cls._efectos.copy()
+class CasillaTerreno:
+   # casilla con terreno
+   # Cuando tengias el mapa, solo necesitais:
+   # 1. Añadir 'terreno: TipoTerreno' a clase Casilla
+   # 2. Llamar a 'aplicar_efectos()' en el flujo de combate
+    fila: int
+    col: int
+    terreno: TipoTerreno = TipoTerreno.TIERRA
+    obstaculo: bool = False  # True = no se puede caminar
+    
+    # Estado dinámico
+    duracion_efecto: int = 0  # Turnos restantes de efecto temporal
+    entidad_actual: Optional['Batalla'] = None  # Forward reference
+    
+    def __post_init__(self):
+        self.efecto = RegistroTerrenos.obtener(self.terreno)
+    
+    def cambiar_terreno(self, nuevo_tipo: TipoTerreno, duracion: int = 0):
+        # Cambia el tipo de terreno (PE: lava -> piedra caliente)
+        self.terreno = nuevo_tipo
+        self.efecto = RegistroTerrenos.obtener(nuevo_tipo)
+        self.duracion_efecto = duracion
+    
+    def es_caminable(self, entidad_tiene_objeto: Optional[str] = None):
+       # "Verifica si se puede caminar aquí
+        if self.obstaculo:
+            return False
+        
+        # Verificar si necesita objeto especial
+        if self.efecto.requiere_objeto:
+            if entidad_tiene_objeto != self.efecto.requiere_objeto:
+                return False  # No tiene botas anti-resbalantes
+        
+        return self.efecto.caminable
+    
+    def calcular_modificador_daño(self, elemento: Elemento, entidad_afinidad: Optional[Elemento] = None) -> tuple[float, bool]:  
+       # Calcula multiplicador de daño y si aplica estado alterado.
+       # Retorna: (multiplicador, aplicar_estado)
+        mod = self.efecto.obtener_modificador(elemento)
+        # Afinidad especial (inmunidad fuego en lava/piedra caliente)
+        if entidad_afinidad == Elemento.FUEGO:
+            if self.terreno in [TipoTerreno.LAVA, TipoTerreno.PIEDRA_CALIENTE]:
+                return (1.0, False)  # Inmune al daño de terreno de fuego
+        
+        # Calcular si aplica estado basado en probabilidad
+        aplicar = r.random() < mod.probabilidad_efecto
+        
+        return (mod.potenciacion, aplicar)
+    
+    def aplicar_efecto_por_turno(self, entidad) -> dict:
+       # aplica efectos al final del turno (daño por terreno).
+       # Retorna dict con información del efecto aplicado.
+        resultado = {
+            "daño_recibido": 0,
+            "estado_aplicado": None,
+            "evento_especial": None,
+            "mensaje": []
+        }
+        
+        if not entidad or not entidad.esta_viva():
+            return resultado
+        
+        # Evento especial (resbalón en hielo, etc.)
+        if self.efecto.probabilidad_evento > 0:
+            if r.random() < self.efecto.probabilidad_evento:
+                # verificar si tiene objeto que lo previene
+                tiene_proteccion = hasattr(entidad, 'objetos_equipados') and self.efecto.requiere_objeto in entidad.objetos_equipados
+                
+                if not tiene_proteccion:
+                    resultado["evento_especial"] = "resbalon"
+                    resultado["mensaje"].append(f"¡{entidad.nombre} se resbaló en el hielo!")
+                    # aquí podriamos aplicar efecto de perder turno o similar
+        
+        # Daño por terreno (quemadura, veneno, etc.)
+        for elem, mod in self.efecto.modificadores.items():
+            if mod.daño_por_turno > 0:
+                # Verificar inmunidades
+                if hasattr(entidad, 'afinidad') and entidad.afinidad == elem:
+                    continue  # Inmune
+                
+                daño = mod.daño_por_turno
+                entidad.recibir_daño(daño)
+                resultado["daño_recibido"] += daño
+                
+                nombre_estado = self._nombre_estado(elem)
+                resultado["estado_aplicado"] = nombre_estado
+                resultado["mensaje"].append(
+                    f"{entidad.nombre} recibe {daño} de daño por {nombre_estado}"
+                )
+        
+        # Reducir duración de efectos temporales
+        if self.duracion_efecto > 0:
+            self.duracion_efecto -= 1
+            if self.duracion_efecto == 0:
+                # Revertir a tierra si era temporal
+                if self.terreno in [TipoTerreno.HIERBA_SECA, TipoTerreno.PIEDRA_CALIENTE]:
+                    resultado["mensaje"].append(f"El terreno en ({self.fila},{self.col}) vuelve a la normalidad")
+                    self.cambiar_terreno(TipoTerreno.TIERRA)
+        
+        return resultado
+    
+    def interactuar_con_ataque(self, elemento: Elemento, fuerza_ataque: int = 0) -> Optional[TipoTerreno]:
+       # Cuando un ataque elemental golpea esta casilla.
+       # Retorna el nuevo tipo de terreno si cambió, None si no.
+        
+        # Agua + Lava = Piedra caliente
+        if elemento == Elemento.AGUA and self.terreno == TipoTerreno.LAVA:
+            self.cambiar_terreno(TipoTerreno.PIEDRA_CALIENTE, duracion=5)
+            return TipoTerreno.PIEDRA_CALIENTE
+        
+        # Agua + Hierba Seca = Tierra
+        if elemento == Elemento.AGUA and self.terreno == TipoTerreno.HIERBA_SECA:
+            self.cambiar_terreno(TipoTerreno.TIERRA)
+            return TipoTerreno.TIERRA
+        
+        # Fuego + Hierba Alta = Hierba Seca
+        if elemento == Elemento.FUEGO and self.terreno == TipoTerreno.HIERBA_ALTA:
+            self.cambiar_terreno(TipoTerreno.HIERBA_SECA, duracion=3)
+            return TipoTerreno.HIERBA_SECA
+        
+        # Fuego + Hielo = Agua (derrite)
+        if elemento == Elemento.FUEGO and self.terreno == TipoTerreno.HIELO:
+            self.cambiar_terreno(TipoTerreno.AGUA, duracion=2)
+            return TipoTerreno.AGUA
+        
+        # Electricidad + Agua = Se propaga (efecto de área)
+        if elemento == Elemento.ELECTRICO and self.terreno == TipoTerreno.AGUA:
+            # aquí el sistema de grid debería aplicar daño a adyacentes
+            return None  # El terreno no cambia, pero hay efecto especial
+        
+        return None
+    
+    def _nombre_estado(self, elemento: Elemento) -> str:
+        nombres = {
+            Elemento.FUEGO: "quemadura",
+            Elemento.AGUA: "ahogo",
+            Elemento.ELECTRICO: "electrocución",
+            Elemento.VENENO: "veneno",
+            Elemento.HIELO: "congelación",
+        }
+        return nombres.get(elemento, "daño elemental")
+    
+    def obtener_info(self) -> str:
+       #Descripción para UI
+        base = f"{self.efecto.nombre}: {self.efecto.descripcion}"
+        if self.duracion_efecto > 0:
+            base += f" (Duración: {self.duracion_efecto} turnos)"
+        if self.obstaculo:
+            base += " [OBSTÁCULO]"
+        return base
 
-
-
+class GestorTerreno:
+    """
+    Clase de alto nivel para integrar en el sistema de combate.
+    Tus compañeros solo necesitan instanciar esto y llamar los métodos.
+    """
+    
+    def __init__(self):
+        RegistroTerrenos.inicializar()
+        self.casillas: dict[tuple[int, int], CasillaTerreno] = {}
+    
+    def registrar_casilla(self, fila: int, col: int, 
+                          tipo: TipoTerreno = TipoTerreno.TIERRA,
+                          obstaculo: bool = False):
+        """Añade una casilla al gestor (llamar al crear el mapa)"""
+        self.casillas[(fila, col)] = CasillaTerreno(fila, col, tipo, obstaculo)
+    
+    def obtener_casilla(self, fila: int, col: int) -> Optional[CasillaTerreno]:
+        return self.casillas.get((fila, col))
+    
+    def aplicar_efectos_fin_turno(self, entidad, fila: int, col: int) -> list[str]:
+        """
+        Llama esto al final de cada turno de entidad.
+        Retorna lista de mensajes para mostrar en UI.
+        """
+        casilla = self.obtener_casilla(fila, col)
+        if not casilla:
+            return []
+        
+        resultado = casilla.aplicar_efecto_por_turno(entidad)
+        return resultado["mensaje"]
+    
+    def calcular_daño_modificado(self, atacante, fila_orig: int, col_orig: int, objetivo, fila_dest: int, col_dest: int, elemento: Elemento, daño_base: float) -> tuple[float, list[str]]:
+    
+       # Calcula daño final considerando terreno de atacante y objetivo.
+       # Retorna: (daño_final, mensajes)
+        
+        mensajes = []
+        daño_final = daño_base
+        
+        # Terreno del atacante (puede potenciar)
+        casilla_atacante = self.obtener_casilla(fila_orig, col_orig)
+        if casilla_atacante:
+            mod, _ = casilla_atacante.calcular_modificador_daño(
+                elemento, 
+                getattr(atacante, 'afinidad', None)
+            )
+            if mod != 1.0:
+                daño_final *= mod
+                if mod > 1.0:
+                    mensajes.append(f"¡El terreno potencia el ataque! (x{mod})")
+        
+        # Terreno del objetivo (puede resistir o amplificar)
+        casilla_objetivo = self.obtener_casilla(fila_dest, col_dest)
+        if casilla_objetivo:
+            mod, aplica_estado = casilla_objetivo.calcular_modificador_daño(
+                elemento,
+                getattr(objetivo, 'afinidad', None)
+            )
+            
+            if mod != 1.0:
+                daño_final *= mod
+                if mod < 1.0:
+                    mensajes.append(f"El terreno protege al objetivo (x{mod})")
+            
+            # Aplicar estado alterado si corresponde
+            if aplica_estado and hasattr(objetivo, 'estados'):
+                nombre_estado = casilla_objetivo._nombre_estado(elemento)
+                if nombre_estado not in objetivo.estados:
+                    objetivo.estados.append(nombre_estado)
+                    mensajes.append(f"{objetivo.nombre} sufre {nombre_estado}")
+        
+        return (daño_final, mensajes)
+    
+    def propagar_terreno(self, fila: int, col: int, 
+                         tipo_origen: TipoTerreno,
+                         radio: int = 1) -> list[tuple[int, int]]:
+        """
+        Propaga un terreno a casillas adyacentes (para agua, fuego, etc.)
+        Retorna lista de casillas afectadas.
+        """
+        afectadas = []
+        casilla_origen = self.obtener_casilla(fila, col)
+        if not casilla_origen:
+            return afectadas
+        
+        # Verificar si el terreno se propaga
+        if tipo_origen not in [TipoTerreno.AGUA, TipoTerreno.HIERBA_SECA, TipoTerreno.FUEGO]:
+            return afectadas
+        
+        for df in range(-radio, radio + 1):
+            for dc in range(-radio, radio + 1):
+                if df == 0 and dc == 0:
+                    continue
+                
+                nueva_fila, nueva_col = fila + df, col + dc
+                casilla_vecina = self.obtener_casilla(nueva_fila, nueva_col)
+                
+                if casilla_vecina and casilla_vecina.terreno == TipoTerreno.TIERRA:
+                    # Agua se propaga a tierra
+                    if tipo_origen == TipoTerreno.AGUA:
+                        casilla_vecina.cambiar_terreno(TipoTerreno.AGUA, duracion=2)
+                        afectadas.append((nueva_fila, nueva_col))
+                    # Fuego se propaga a hierba alta
+                    elif tipo_origen == TipoTerreno.HIERBA_SECA and \
+                         casilla_vecina.terreno == TipoTerreno.HIERBA_ALTA:
+                        casilla_vecina.cambiar_terreno(TipoTerreno.HIERBA_SECA, duracion=3)
+                        afectadas.append((nueva_fila, nueva_col))
+        
+        return afectadas
 
 class Entidad:
     id: int
