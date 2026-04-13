@@ -23,26 +23,48 @@ tipos_terreno = [
     TipoTerreno("lava(4)", "imagen/lava(4).png", True)     # Índice 4 (Sólido)
 ]
 
-# Crea el objeto mapa cargando el archivo .map y asignando los tipos de terreno
-mapa = Mapa("primera mapa/start.map", tipos_terreno, 52)
+# 1. Definir una lista con las rutas de los archivos de tus mapas en orden
+archivos_niveles = [
+    "primera mapa/start.map",
+    "primera mapa/nivel2.map", # Asegúrate de crear este archivo
+]
+
+# 2. Cargar todos los mapas en una lista
+mapas_del_juego = [] #Es una lista que contiene todos tus objetos Mapa ya cargados en la memoria.
+for archivo in archivos_niveles:
+    # Creamos el objeto mapa y lo añadimos a la lista (asumo 32 como tamaño)
+    nuevo_mapa = Mapa(archivo, tipos_terreno, 52) 
+    mapas_del_juego.append(nuevo_mapa)
+
+# 3. Variable para controlar en qué nivel está el jugador (0 es el primer nivel)
+nivel_actual = 0 #Funciona como un puntero. Si vale 0, el juego dibuja mapas_del_juego[0] (tu start.map). Si vale 1, dibuja mapas_del_juego[1].
 
 # Bucle Principal del Juego
 while ejecutando:
-    # Revisa todos los eventos que ocurren (teclado, ratón, etc.)
     for evento in pygame.event.get():
-        # Si el usuario hace clic en la 'X' de la ventana, detiene el bucle
         if evento.type == pygame.QUIT:
             ejecutando = False
+            
+        # Usaremos la tecla ESPACIO para probar el cambio de mapa
+        if evento.type == pygame.KEYDOWN:
+            if evento.key == pygame.K_SPACE:#una
+                # Verificamos que no estemos en el último nivel
+                if nivel_actual < len(mapas_del_juego) - 1:
+                    nivel_actual += 1 # Pasamos al siguiente nivel
+                    print(f"Avanzaste al nivel {nivel_actual + 1}")
+                else:
+                    print("¡Has terminado todos los niveles!")
 
     # Código de Dibujo
-    pantalla.fill(color_fondo) # Limpia la pantalla pintándola del color de fondo
-    mapa.dibujar(pantalla)    # Llama a la función para dibujar todos los terrenos
+    pantalla.fill(color_fondo) 
+    
+    # 4. Dibujar SOLO el mapa que corresponde al nivel actual
+    mapas_del_juego[nivel_actual].dibujar(pantalla)
 
-    # Actualiza la pantalla para mostrar los cambios realizados
+    # Actualiza la pantalla
     pygame.display.flip()
-
-    # Pausa el código por 17 milisegundos para limitar los FPS (aprox. 60 FPS)
+    
+    # Pausa
     pygame.time.delay(17)
 
-# Finaliza Pygame y cierra la ventana correctamente
 pygame.quit()
