@@ -33,9 +33,9 @@ class Ataque:
         pass
 #Ataques para la creacion de personajes, no se que vamos ha hacer para crear tantos ataques si metemos muchos
 #se me ocurre sacar la clase del main(y guardarla en otro archivo) y luego exportarla dentro del main, para despues definir todos los ataques dentro del main
-bala_magica = Ataque(25, 'Bala magica', 'magos', 'Bala hecha de magia que perfora al enemigo')
-espadazo = Ataque(20, 'Espadazo', 'caballero', 'Ataque sencillo y preciso con la espada, que produce un gran daño')
-martillazo = Ataque(15, 'Martillazo', 'Tanque', 'Potente ataque descendente con un martillo pesado')
+Bala_magica = Ataque(25, 'Bala magica', 'magos', 'Bala hecha de magia que perfora al enemigo')
+Bspadazo = Ataque(20, 'Espadazo', 'caballero', 'Ataque sencillo y preciso con la espada, que produce un gran daño')
+Bartillazo = Ataque(15, 'Martillazo', 'Tanque', 'Potente ataque descendente con un martillo pesado')
 
 
 class NodoCola:
