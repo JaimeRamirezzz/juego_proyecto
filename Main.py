@@ -23,6 +23,20 @@ GB_COLORS = {
     "blue_bright": (100, 150, 255),    # Hover
 }
 
+class Ataque:
+    def __init__(self, potencia, nombre, grupo_ataque, descripcion):
+        self._potencia = potencia
+        self._nombre = nombre
+        self._grupo_ataque = grupo_ataque
+        self._descripcion = descripcion
+    def atacar(self, personaje, enemigo):#Cuando esten definidos tanto los personajes como los enemigos, podre sacar sus estadisticas para poder enviar el daño
+        pass
+#Ataques para la creacion de personajes, no se que vamos ha hacer para crear tantos ataques si metemos muchos
+#se me ocurre sacar la clase del main(y guardarla en otro archivo) y luego exportarla dentro del main, para despues definir todos los ataques dentro del main
+bala_magica = Ataque(25, 'Bala magica', 'magos', 'Bala hecha de magia que perfora al enemigo')
+espadazo = Ataque(20, 'Espadazo', 'caballero', 'Ataque sencillo y preciso con la espada, que produce un gran daño')
+martillazo = Ataque(15, 'Martillazo', 'Tanque', 'Potente ataque descendente con un martillo pesado')
+
 
 class NodoCola:
     def __init__(self, dato):
