@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 pg.init()
 window = pg.display.set_mode((1000, 700))
 pg.display.set_caption("RPG Táctico - Demo")
-estado_partida = 3  # Iniciar directamente en combate para probar
+estado_partida = 0  # Iniciar en pantalla de inicio
 
 # paleta de colores: (se pueden cambiar)
 GB_COLORS = {
@@ -104,6 +104,7 @@ class Entidad:
         
     def __repr__(self):
         return f"{self.nombre}(Vel:{self.velocidad()}, HP:{self.hp})"
+    
 class Batalla:
     _id_counter = 0
     
@@ -330,7 +331,13 @@ while running:
                                     entidad_actual = enfrentamiento.pequeTurno()
     
     # LÓGICA DEL JUEGO
-    if estado_partida == 3:
+    if estado_partida == 0:#corresponde con la pantalla de inicio
+        estado_partida = 1
+    elif estado_partida == 1:# corresponde con la creacion de personajes
+        estado_partida = 2
+    elif estado_partida ==2:# la animacion que no se si quitar
+        estado_partida = 3
+    elif estado_partida == 3:
         if not enfrentamiento.activo:
             print("="*40)
             print("  ⚔️  COMBATE INICIADO  ⚔️")
