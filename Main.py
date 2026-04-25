@@ -6,8 +6,11 @@ from dataclasses import dataclass, field
 #import time
 #from typing import Optional
 
+altura_ventana = 700
+anchura_ventana = 1000
+
 pg.init()
-window = pg.display.set_mode((1000, 700))
+window = pg.display.set_mode((anchura_ventana, altura_ventana))
 pg.display.set_caption("RPG Táctico - Demo")
 estado_partida = 0  # Iniciar en pantalla de inicio
 
@@ -34,7 +37,7 @@ class Ataque:
 #Ataques para la creacion de personajes, no se que vamos ha hacer para crear tantos ataques si metemos muchos
 #se me ocurre sacar la clase del main(y guardarla en otro archivo) y luego exportarla dentro del main, para despues definir todos los ataques dentro del main
 Bala_magica = Ataque(25, 'Bala magica', 'magos', 'Bala hecha de magia que perfora al enemigo')
-Bspadazo = Ataque(20, 'Espadazo', 'caballero', 'Ataque sencillo y preciso con la espada, que produce un gran daño')
+Espadazo = Ataque(20, 'Espadazo', 'caballero', 'Ataque sencillo y preciso con la espada, que produce un gran daño')
 Bartillazo = Ataque(15, 'Martillazo', 'Tanque', 'Potente ataque descendente con un martillo pesado')
 
 
@@ -298,6 +301,11 @@ entidad_actual = None
 font = pg.font.SysFont("consolas", 20)
 clock = pg.time.Clock()
 
+# Para mostrar la pantalla de inicio
+def pantalla_inicio():
+    window.blit(font.render("Bienbenido al juego", True, GB_COLORS["white"]), (380, 200))
+    window.blit(font.render("Pulse espacio para pasar a la creacion de personaje", True, GB_COLORS["white"]), (200, 600))
+
 # BUCLE PRINCIPAL
 running = True
 while running:
@@ -329,10 +337,13 @@ while running:
                             if entidad_actual is None:
                                 if enfrentamiento.granTurno():
                                     entidad_actual = enfrentamiento.pequeTurno()
+            elif event.key == pg.K_SPACE:
+                if estado_partida == 0:
+                    estado_partida = 1
     
     # LÓGICA DEL JUEGO
     if estado_partida == 0:#corresponde con la pantalla de inicio
-        estado_partida = 1
+        pass
     elif estado_partida == 1:# corresponde con la creacion de personajes
         estado_partida = 2
     elif estado_partida ==2:# la animacion que no se si quitar
@@ -363,7 +374,13 @@ while running:
     # DIBUJAR
     window.fill(GB_COLORS['black'])
     
-    if estado_partida == 3:
+    if estado_partida == 0:
+        pantalla_inicio()
+    elif estado_partida == 1:
+        pass
+    elif estado_partida == 2:
+        pass
+    elif estado_partida == 3:
         # Dibujar estado del combate
         y_offset = 50
         
