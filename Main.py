@@ -306,6 +306,11 @@ def pantalla_inicio():
     window.blit(font.render("Bienbenido al juego", True, GB_COLORS["white"]), (380, 200))
     window.blit(font.render("Pulse espacio para pasar a la creacion de personaje", True, GB_COLORS["white"]), (200, 600))
 
+# Para mostrar la pantalla de creacion de personajes, esta hecha de forma temporal para ser modificada si la quieres cambiar hazlo, no tengas miedo
+def pantalla_creacion_de_personajes():
+    window.blit(font.render("Creación de personajes", True, GB_COLORS["white"]), (380, 200))
+    window.blit(font.render("Pulsa espacio para pasar a la batalla", True, GB_COLORS["white"]), (200, 600))
+
 # BUCLE PRINCIPAL
 running = True
 while running:
@@ -338,14 +343,14 @@ while running:
                                 if enfrentamiento.granTurno():
                                     entidad_actual = enfrentamiento.pequeTurno()
             elif event.key == pg.K_SPACE:
-                if estado_partida == 0:
-                    estado_partida = 1
+                if estado_partida == 0 or estado_partida == 1:
+                    estado_partida += 1
     
     # LÓGICA DEL JUEGO
     if estado_partida == 0:#corresponde con la pantalla de inicio
         pass
     elif estado_partida == 1:# corresponde con la creacion de personajes
-        estado_partida = 2
+        pass
     elif estado_partida ==2:# la animacion que no se si quitar
         estado_partida = 3
     elif estado_partida == 3:
@@ -377,7 +382,7 @@ while running:
     if estado_partida == 0:
         pantalla_inicio()
     elif estado_partida == 1:
-        pass
+        pantalla_creacion_de_personajes()
     elif estado_partida == 2:
         pass
     elif estado_partida == 3:
