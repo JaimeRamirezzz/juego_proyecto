@@ -11,7 +11,7 @@ class Personaje:
 
         self.nivel = 1
         self.experiencia = 0
-        self.experiencia_necesaria = 100
+        self.experiencia_necesaria = 50
         self.puntos_stats = 0
 
         self.hp_max = vida
@@ -21,11 +21,9 @@ class Personaje:
         self.velocidad_base = velocidad
 
         self.vivo = True
-        self.estados = []
-        self.modificadores_vel = 0
 
     def velocidad(self):
-        return max(0, self.velocidad_base + self.modificadores_vel)
+        return self.velocidad_base
 
     def esta_vivo(self):
         return self.vivo and self.hp_actual > 0
@@ -37,13 +35,14 @@ class Personaje:
         if self.hp_actual <= 0:
             self.hp_actual = 0
             self.vivo = False
-            print(f"{self.nombre} ha muerto")
+            print(f"{self.nombre} ha sido derrotado")
 
     def curarse(self, cantidad):
-        self.hp_actual += cantidad
+        if self.esta_vivo():
+            self.hp_actual += cantidad
 
-        if self.hp_actual > self.hp_max:
-            self.hp_actual = self.hp_max
+            if self.hp_actual > self.hp_max:
+                self.hp_actual = self.hp_max
 
     def ganar_experiencia(self, cantidad):
         self.experiencia += cantidad
@@ -55,12 +54,12 @@ class Personaje:
     def subir_nivel(self):
         self.nivel += 1
         self.puntos_stats += 3
-        self.experiencia_necesaria = int(self.experiencia_necesaria * 1.25)
+        self.experiencia_necesaria = int(self.experiencia_necesaria * 1.3)
 
         self.hp_actual = self.hp_max
 
-        print(f"{self.nombre} subió a nivel {self.nivel}")
-        print(f"Tiene {self.puntos_stats} puntos para repartir")
+        print(f"{self.nombre} ha subido al nivel {self.nivel}")
+        print(f"Ha ganado 3 puntos para mejorar estadísticas")
 
     def mejorar_stat(self, stat):
         if self.puntos_stats <= 0:
@@ -68,8 +67,8 @@ class Personaje:
             return
 
         if stat == "vida":
-            self.hp_max += 5
-            self.hp_actual += 5
+            self.hp_max += 3
+            self.hp_actual += 3
 
         elif stat == "ataque":
             self.ataque += 1
@@ -81,25 +80,11 @@ class Personaje:
             self.velocidad_base += 1
 
         else:
-            print("Stat inválida")
+            print("Stat no válida")
             return
 
         self.puntos_stats -= 1
         print(f"{self.nombre} mejoró {stat}")
-
-    def calcular_daño_base(self, objetivo):
-        denominador = self.ataque + objetivo.defensa
-
-        if denominador == 0:
-            return 0
-
-        daño_base = (self.ataque ** 2) / denominador
-        return daño_base
-
-    def realizar_ataque(self, objetivo):
-        daño = self.calcular_daño_base(objetivo)
-        objetivo.recibir_daño(daño)
-        return daño
 
     def mostrar_stats(self):
         print("---------------")
@@ -109,6 +94,7 @@ class Personaje:
         print(f"Vida: {self.hp_actual}/{self.hp_max}")
         print(f"Ataque: {self.ataque}")
         print(f"Defensa: {self.defensa}")
-        print(f"Velocidad: {self.velocidad()}")
+        print(f"Velocidad: {self.velocidad_base}")
         print(f"XP: {self.experiencia}/{self.experiencia_necesaria}")
+        print(f"Puntos disponibles: {self.puntos_stats}")
         print("---------------")
