@@ -5,6 +5,9 @@ import random as r
 from dataclasses import dataclass, field
 #import time
 #from typing import Optional
+from personajes.caballero import Caballero
+from personajes.tanque import Tanque
+from personajes.arquero import Arquero
 
 altura_ventana = 700
 anchura_ventana = 1000
@@ -443,3 +446,9 @@ while running:
 
 pg.quit()
 
+#CLASES JUGADORES
+jugador1 = Caballero("Caballero")
+jugador2 = Tanque("Tanque")
+jugador3 = Arquero("Arquero")
+
+aliados = [jugador1, jugador2, jugador3]
