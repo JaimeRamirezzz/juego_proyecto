@@ -10,5 +10,6 @@ class Caballero(Personaje):
             ataque=4,
             defensa=4,
             velocidad=3,
+            ataques=["Espadazo", "Corte rápido", "Golpe con escudo"],
             equipo=equipo
         )
