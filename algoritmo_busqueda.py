@@ -1,0 +1,35 @@
+import numpy as np
+
+na = np.nan
+graph = np.array([[0, 7, 9, 5, na, 14],
+                  [7, 0, 10, 15, na, na],
+                  [9, 10, 0, 11, na, 2],
+                  [na, 15, 11, 0, 6, na],
+                  [na, na, na, 6, 0, 9],
+                  [14, na, 2, na, 9, 0]])
+
+def dijkstra(graph, start):
+    distances = np.fromiter((0 if i == start else np.inf for i in range(len(graph))), dtype='float')
+    visited = np.full_like(graph[start], 0, dtype='bool')
+   # Esto crea una lista ÚNICA e independiente para cada nodo
+    paths = {nodo: [str(start)] for nodo in range(len(graph))}
+
+
+    for _ in range(len(graph)):
+        min_distance_node = np.where(distances == distances[~visited].min())[0][0]
+        
+        for node in range(len(graph)):
+            if not graph[min_distance_node, node] > 0:
+                continue
+            distance_to_node = distances[min_distance_node] + graph[min_distance_node, node]
+            if distance_to_node < distances[node] and visited[node] == False:
+                distances[node] = distance_to_node
+                paths[node] = paths[min_distance_node].copy()
+                paths[node].append(str(node))
+
+        visited[min_distance_node] = True
+
+    for node, path in paths.items():
+        print(f'The shortest path from node {start} to node {node} is:\n{' -> '.join(path)}\nTotal distance: {distances[node]}', end='\n\n')
+
+    return paths
