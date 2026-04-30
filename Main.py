@@ -35,6 +35,15 @@ class Ataque:
         self._nombre = nombre
         self._grupo_ataque = grupo_ataque
         self._descripcion = descripcion
+    def nombre(self):
+        return self._nombre
+    def potencia(self):
+        return self._potencia
+    def grupo_ataque(self):
+        return self._grupo_ataque
+    def descripcion(self):
+        return self._descripcion
+    
     def atacar(self, personaje, enemigo):#Cuando esten definidos tanto los personajes como los enemigos, podre sacar sus estadisticas para poder enviar el daño
         pass
 #Ataques para la creacion de personajes, no se que vamos ha hacer para crear tantos ataques si metemos muchos
@@ -85,31 +94,6 @@ class ColaEnlazada:
         self.front = None
         self.rear = None
 
-
-@dataclass
-class Entidad:
-    id: int
-    nombre: str
-    velocidad_base: int
-    hp: int = 100
-    max_hp: int = 100
-    equipo: str = "neutral"
-    x: int = 0
-    y: int = 0
-    estados: list = field(default_factory=list)
-    modificadores_vel: int = 0
-    
-    def velocidad(self): 
-        return max(0, self.velocidad_base + self.modificadores_vel)
-        
-    def esta_vivo(self):
-        return self.hp > 0
-        
-    def __lt__(self, other):
-        return self.velocidad() > other.velocidad() 
-        
-    def __repr__(self):
-        return f"{self.nombre}(Vel:{self.velocidad()}, HP:{self.hp})"
     
 class Batalla:
     _id_counter = 0
