@@ -13,6 +13,7 @@ altura_ventana = 700
 anchura_ventana = 1000
 
 pg.init()
+pg.key.set_repeat(0)
 window = pg.display.set_mode((anchura_ventana, altura_ventana))
 pg.display.set_caption("RPG Táctico - Demo")
 estado_partida = 0  # Iniciar en pantalla de inicio
@@ -210,6 +211,11 @@ def pantalla_creacion_de_personajes():
     window.blit(font.render("Creación de personajes", True, GB_COLORS["white"]), (380, 200))
     window.blit(font.render("Pulsa espacio para pasar a la batalla", True, GB_COLORS["white"]), (200, 600))
 
+from personajes.creacion_personaje_ui import PantallaCreacionPersonajes
+
+pantalla_creacion = PantallaCreacionPersonajes(font, GB_COLORS)
+aliados = []
+
 # BUCLE PRINCIPAL
 running = True
 while running:
@@ -248,8 +254,12 @@ while running:
     # LÓGICA DEL JUEGO
     if estado_partida == 0:#corresponde con la pantalla de inicio
         pass
-    elif estado_partida == 1:# corresponde con la creacion de personajes
-        pass
+    elif estado_partida == 1:
+        terminado = pantalla_creacion.manejar_evento(event)
+
+        if terminado:
+            aliados = pantalla_creacion.obtener_personajes()
+            estado_partida = 2
     elif estado_partida ==2:# la animacion que no se si quitar
         estado_partida = 3
     elif estado_partida == 3:
@@ -281,7 +291,7 @@ while running:
     if estado_partida == 0:
         pantalla_inicio()
     elif estado_partida == 1:
-        pantalla_creacion_de_personajes()
+        pantalla_creacion.dibujar(window)
     elif estado_partida == 2:
         pass
     elif estado_partida == 3:
