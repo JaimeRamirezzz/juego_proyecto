@@ -94,90 +94,13 @@ class ColaEnlazada:
         self.front = None
         self.rear = None
 
-    
-class Batalla:
-    _id_counter = 0
-    
-    def __init__(self, nombre, base_ataque, base_defensa, base_velocidad, nivel=1, es_boss=False, equipo=None):
-        Batalla._id_counter += 1
-        self.id = Batalla._id_counter
-        self.nombre = nombre
-        self.nivel = nivel
-        self.equipo = equipo
-        self.velocidad_base = base_velocidad
-        self.ataque = base_ataque + (2 * nivel) + m.log(nivel + 1)
-        self.defensa = base_defensa + (1.5 * nivel) + m.log(nivel + 1)
-
-
-        multiplicador_tpk = 20 if es_boss else 5
-        self.hp_max = (self.ataque * multiplicador_tpk) + (5 * m.log(nivel + 1))
-        self.hp_actual = self.hp_max
-
-        self.x = 0
-        self.y = 0
-
-        self.progreso_atb = 0
-        self.vivo = True
-        self.estados = []
-        self.modificadores_vel = 0
-        
-    def velocidad(self):
-        return max(0.1, self.velocidad_base + (0.5 * self.nivel) + m.log(self.nivel + 1) + self.modificadores_vel)
-    
-    
-    def esta_vivo(self):
-        return self.vivo and self.hp_actual > 0
-    
-    def calcular_daño_base(self, objetivo):
-        denominador = self.ataque + objetivo.defensa
-        if denominador == 0:
-            return 0
-        daño_base = (self.ataque ** 2) / denominador
-        return daño_base
-    
-    def realizar_ataque(self, objetivo, mod_elemental=1.0, es_critico=False):
-        daño_base = self.calcular_daño_base(objetivo)
-        mod_critico = 2.0 if es_critico else 1.0
-        daño_final = daño_base * mod_elemental * mod_critico
-        variacion = r.uniform(0.9, 1.1)
-        daño_final *= variacion
-        return round(daño_final, 2)
-    
-    def recibir_daño(self, cantidad):
-        self.hp_actual -= cantidad
-        if self.hp_actual <= 0:
-            self.hp_actual = 0
-            self.vivo = False
-            print(f"{self.nombre} ha sido derrotado")
-    
-    def actualizar_atb(self, d_time=1):
-        self.progreso_atb += self.velocidad() * d_time
-        if self.progreso_atb >= 100:
-            return True
-        return False
-    
-    def reset_atb(self):
-        self.progreso_atb = 0
-        
-    def __lt__(self, other):
-        return self.velocidad() > other.velocidad()
-    
-    def __repr__(self):
-        return f"{self.nombre}(V:{self.velocidad():.1f}, HP:{self.hp_actual:.0f}/{self.hp_max:.0f})"
-    
-    def __str__(self):
-        atb_bar = int(self.progreso_atb / 10)
-        barra = "█" * atb_bar + "░" * (10 - atb_bar)
-        estado = "💀" if not self.vivo else "⚔️"
-        return f"{estado} {self.nombre} | ATB:[{barra}] {self.progreso_atb:.0f}% | HP:{self.hp_actual:.0f}"
-
 
 class enfrentamiento:
-    def __init__(self, jugadores: list, mapa_tablero=None, enemigos: list = None):
+    def __init__(self, jugadores: list, mapa_tablero=None):
         self._jugadas = 0
         self.tablero = mapa_tablero
-        self.aliados = jugadores if jugadores else []
-        self.enemigos = enemigos if enemigos else []
+        self.aliados = jugadores
+        self.enemigos = mapa_tablero.lista_enemigos()
         self.todas_entidades = []
         self._actualizar_lista_entidades()
         self.orden = ColaEnlazada()
