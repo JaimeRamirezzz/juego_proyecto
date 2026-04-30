@@ -43,3 +43,10 @@ class Personaje:
         print(f"XP: {self.experiencia}/{self.experiencia_necesaria}")
         print(f"Ataques: {self.ataques}")
         print("---------------")
+    
+    def mostrar_en_turno(self):
+        window.blit(font.render(f"{self.nombre}", True, GB_COLORS["white"]), (380, 200))#Nombre del personaje
+        window.blit(font.render(f"1:{self.ataques[0].nombre()}", True, GB_COLORS["white"]), (200, 500))#nombre de los ataques disponibles
+        window.blit(font.render(f"2:{self.ataques[1].nombre()}", True, GB_COLORS["white"]), (300, 650))
+        window.blit(font.render(f"3:{self.ataques[2].nombre()}", True, GB_COLORS["white"]), (300, 500))
+        window.blit(font.render(f"4:{self.ataques[3].nombre()}", True, GB_COLORS["white"]), (200, 650))
