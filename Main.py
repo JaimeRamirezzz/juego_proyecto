@@ -195,17 +195,6 @@ class enfrentamiento:
 
 
 # INICIALIZAR ENTIDADES DE PRUEBA
-jugador1 = Batalla("Héroe", base_ataque=15, base_defensa=10, base_velocidad=12, nivel=1, equipo="jugador")
-jugador2 = Batalla("Maga", base_ataque=20, base_defensa=5, base_velocidad=10, nivel=1, equipo="jugador")
-
-enemigo1 = Batalla("Goblin", base_ataque=12, base_defensa=8, base_velocidad=8, nivel=1, equipo="enemigo")
-enemigo2 = Batalla("Orco", base_ataque=18, base_defensa=12, base_velocidad=6, nivel=1, equipo="enemigo")
-
-aliados = [jugador1, jugador2]
-enemigos = [enemigo1, enemigo2]
-
-enfrentamiento = enfrentamiento(aliados, None, enemigos)
-entidad_actual = None
 
 # FUENTE PARA TEXTO
 font = pg.font.SysFont("consolas", 20)
@@ -213,7 +202,7 @@ clock = pg.time.Clock()
 
 # Para mostrar la pantalla de inicio
 def pantalla_inicio():
-    window.blit(font.render("Bienbenido al juego", True, GB_COLORS["white"]), (380, 200))
+    window.blit(font.render("Bienvenido al juego", True, GB_COLORS["white"]), (380, 200))
     window.blit(font.render("Pulse espacio para pasar a la creacion de personaje", True, GB_COLORS["white"]), (200, 600))
 
 # Para mostrar la pantalla de creacion de personajes, esta hecha de forma temporal para ser modificada si la quieres cambiar hazlo, no tengas miedo
