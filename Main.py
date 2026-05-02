@@ -247,9 +247,15 @@ while running:
                             if entidad_actual is None:
                                 if enfrentamiento.granTurno():
                                     entidad_actual = enfrentamiento.pequeTurno()
-            elif event.key == pg.K_SPACE:
-                if estado_partida == 0 or estado_partida == 1:
-                    estado_partida += 1
+            elif event.key == pg.K_SPACE and estado_partida == 0:
+                estado_partida = 1
+
+            elif estado_partida == 1:
+                terminado = pantalla_creacion.manejar_evento(event)
+
+                if terminado:
+                    aliados = pantalla_creacion.obtener_personajes()
+                    estado_partida = 2
     
     # LÓGICA DEL JUEGO
     if estado_partida == 0:#corresponde con la pantalla de inicio
