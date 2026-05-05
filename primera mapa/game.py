@@ -6,8 +6,8 @@ pygame.init() # Inicializa todos los módulos internos de Pygame
 
 # Configura el título de la ventana
 pygame.display.set_caption("Juego Proyecto")
-# Crea la ventana de juego con una resolución de 800x600 píxeles
-pantalla = pygame.display.set_mode((988, 677))
+# Crea la ventana de juego con una resolución de píxeles
+pantalla = pygame.display.set_mode((1000, 700))
 
 # Define un color de fondo usando formato RGB (Rojo, Verde, Azul)
 color_fondo = (30, 150, 50)

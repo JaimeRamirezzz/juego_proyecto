@@ -31,13 +31,27 @@ class Mapa:
 
     # Método para renderizar el mapa en la ventana del juego
     def dibujar(self, pantalla):
-        # Recorre cada fila usando 'enumerate' para obtener el índice 'y' (vertical)
+        # 1. Calculamos el tamaño total del mapa en píxeles
+        # Ancho: cantidad de columnas por el tamaño de cada cuadro
+        ancho_mapa = len(self.terrenos[0]) * self.tamano_terreno
+        # Alto: cantidad de filas por el tamaño de cada cuadro
+        alto_mapa = len(self.terrenos) * self.tamano_terreno
+
+        # 2. Calculamos el margen (offset) para centrar el mapa
+        # Restamos el tamaño del mapa al tamaño de la ventana y dividimos entre 2
+        offset_x = (pantalla.get_width() - ancho_mapa) // 2
+        offset_y = (pantalla.get_height() - alto_mapa) // 2
+
+        # 3. Dibujamos el mapa usando los desplazamientos (offsets)
         for y, fila in enumerate(self.terrenos):
-            # Recorre cada elemento de la fila para obtener el índice 'x' (horizontal)
             for x, terreno in enumerate(fila):
-                # Calcula la posición en píxeles multiplicando el índice por el tamaño
-                ubicacion = (x * self.tamano_terreno, y * self.tamano_terreno)
-                # Selecciona la imagen correspondiente al número de terreno actual
+                # Calculamos la posición sumando el offset para que no empiece en (0,0)
+                pos_x = x * self.tamano_terreno + offset_x
+                pos_y = y * self.tamano_terreno + offset_y
+                
+                ubicacion = (pos_x, pos_y)
+                
+                # Seleccionamos la imagen según el número del terreno
                 imagen = self.tipos_terreno[terreno].imagen
-                # Dibuja la imagen en la pantalla en la ubicación calculada
+                # Dibujamos la imagen en la posición centrada
                 pantalla.blit(imagen, ubicacion)
