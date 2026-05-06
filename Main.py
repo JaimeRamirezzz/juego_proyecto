@@ -110,44 +110,41 @@ class enfrentamiento:
         self.activo = False
         self.ganador = None
         self.usar_atb = False
+        self.paso_de_ronda()
         
     def _actualizar_lista_entidades(self):
         self.todas_entidades = []
         for e in self.aliados + self.enemigos:
             if e.esta_vivo():
                 self.todas_entidades.append(e)
+        if self.orden.empty():
+            for i in self.calcular_orden():
+                self.orden.push(i)
                 
     def calcular_orden(self):
-        participantes = [e for e in self.todas_entidades if e.esta_vivo()]
-        ordenados = sorted(participantes, key=lambda e: (-e.velocidad(), e.id))
+        ordenados = sorted(self.todas_entidades, key=lambda e: (-e.velocidad(), e.id))
         return ordenados
         
-    def granTurno(self):
+    def paso_de_ronda(self):##paso de ronda
         self._actualizar_lista_entidades()
         if self._verificar_fin_combate():
             return False
-        orden_iniciativa = self.calcular_orden()
-        self.orden.clear()
-        for entidad in orden_iniciativa:
-            self.orden.push(entidad)
-        self._jugadas += 1
-        print(f"\\n RONDA {self._jugadas} ")
-        print(f"Orden de iniciativa: {[e.nombre for e in orden_iniciativa]}")
-        return True
         
-    def pequeTurno(self):
+        self._jugadas += 1
+        self.entidad_actual = self.orden.pop()
+        
+    def paso_de_turno(self):#Solo hace el cambio de turno
         if self.orden.empty():
+            self.paso_de_ronda()
             return None
         self.entidad_actual = self.orden.pop()
-        if not self.entidad_actual.esta_vivo():
-            return self.pequeTurno()
+        
         self.historial_turnos.append({
             "Ronda": self._jugadas,
             "Entidad": self.entidad_actual.nombre,
             "Equipo": self.entidad_actual.equipo
         })
-        print(f"\\n -> Turno de: {self.entidad_actual.nombre} ({self.entidad_actual.equipo}) <<<")
-        return self.entidad_actual
+        
         
     def iniciar_combate(self, usar_atb=False):
         self.usar_atb = usar_atb
@@ -194,6 +191,17 @@ class enfrentamiento:
             return [e for e in self.aliados if e.esta_vivo()]
         return [e for e in self.enemigos if e.esta_vivo()]
 
+    def lo_que_se_ve(self):#Muestra todo el mapa y la interfaz que puede ver el usuario
+        self.tablero.mostrar_mapa()#En esta linea va el metodo que hace que el objeto del mapa, se muestre
+        self.mostrar_ui()
+        #No se si en mostrar mapa estará tambien mostrar aliados y enemigos
+
+    def mostrar_ui(self):
+        if self.entidad_actual in self.aliados:
+            self.entidad_actual.mostrar_en_turno()
+            window.blit(font.render(f"Ronda:{self._jugadas}", True, GB_COLORS["white"]), (380, 200))#Las coordenadas se cambiaran y se ajustaran cuando el mapa se pueda ver
+
+
 
 # INICIALIZAR ENTIDADES DE PRUEBA
 
@@ -228,27 +236,29 @@ while running:
             if event.key == pg.K_ESCAPE:
                 running = False
             # Controles simples para probar
-            elif event.key == pg.K_1 and estado_partida == 3:
-                # Atacar automáticamente con el jugador actual
-                if entidad_actual and entidad_actual.equipo == "jugador":
-                    objetivos = enfrentamiento.obtener_objetivos_validos(entidad_actual)
-                    if objetivos:
-                        objetivo = objetivos[0]
-                        daño = entidad_actual.realizar_ataque(objetivo)
-                        objetivo.recibir_daño(daño)
-                        print(f"¡{entidad_actual.nombre} hace {daño:.1f} daño a {objetivo.nombre}!")
-                        
-                        enfrentamiento._actualizar_lista_entidades()
-                        if enfrentamiento._verificar_fin_combate():
-                            pass
-                        else:
-                            enfrentamiento.finalizar_turno()
-                            entidad_actual = enfrentamiento.pequeTurno()
-                            if entidad_actual is None:
-                                if enfrentamiento.granTurno():
-                                    entidad_actual = enfrentamiento.pequeTurno()
-            elif event.key == pg.K_SPACE and estado_partida == 0:
-                estado_partida = 1
+            if estado_partida == 3:
+                if event.key == pg.K_1:
+                    # Atacar automáticamente con el jugador actual
+                    if entidad_actual and entidad_actual.equipo == "jugador":
+                        objetivos = enfrentamiento.obtener_objetivos_validos(entidad_actual)
+                        if objetivos:
+                            objetivo = objetivos[0]
+                            daño = entidad_actual.realizar_ataque(objetivo)
+                            objetivo.recibir_daño(daño)
+                            print(f"¡{entidad_actual.nombre} hace {daño:.1f} daño a {objetivo.nombre}!")
+                            
+                            enfrentamiento._actualizar_lista_entidades()
+                            if enfrentamiento._verificar_fin_combate():
+                                pass
+                            else:
+                                enfrentamiento.finalizar_turno()
+                                entidad_actual = enfrentamiento.pequeTurno()
+                                if entidad_actual is None:
+                                    if enfrentamiento.granTurno():
+                                        entidad_actual = enfrentamiento.pequeTurno()
+            elif estado_partida == 0:
+                if event.key == pg.K_SPACE:
+                    estado_partida = 1
 
             elif estado_partida == 1:
                 terminado = pantalla_creacion.manejar_evento(event)
@@ -268,6 +278,7 @@ while running:
             estado_partida = 2
     elif estado_partida ==2:# la animacion que no se si quitar
         estado_partida = 3
+        peleilla = enfrentamiento()
     elif estado_partida == 3:
         if not enfrentamiento.activo:
             print("="*40)
@@ -302,7 +313,8 @@ while running:
         pass
     elif estado_partida == 3:
         # Dibujar estado del combate
-        y_offset = 50
+        peleilla.lo_que_se_ve()
+        '''y_offset = 50
         
         titulo = font.render(f"RONDA {enfrentamiento._jugadas}", True, GB_COLORS['white'])
         window.blit(titulo, (50, y_offset))
@@ -351,7 +363,7 @@ while running:
                 resultado = font.render("¡VICTORIA! Pulsa ESC para salir", True, GB_COLORS['green_bright'])
             else:
                 resultado = font.render("DERROTA... Pulsa ESC para salir", True, GB_COLORS['red_bright'])
-            window.blit(resultado, (50, y_offset))
+            window.blit(resultado, (50, y_offset))'''
     
     pg.display.update()
     clock.tick(60)
