@@ -2,7 +2,17 @@ import pygame as pg
 from personajes.caballero import Caballero
 from personajes.tanque import Tanque
 from personajes.arquero import Arquero
-
+from ataques import (
+    Tajo_firme,
+    Golpe_con_escudo,
+    Corte_defensivo,
+    Martillazo,
+    Golpe_pesado,
+    Impacto_sismico,
+    Disparo_rapido,
+    Flecha_precisa,
+    Disparo_doble
+)
 
 class PantallaCreacionPersonajes:
     def __init__(self, font, colores):
@@ -20,22 +30,21 @@ class PantallaCreacionPersonajes:
 
         self.ataques_disponibles = {
             "Caballero": [
-                {"nombre": "Tajo firme", "desc": "Ataque equilibrado con espada"},
-                {"nombre": "Golpe con escudo", "desc": "Daño bajo pero seguro"},
-                {"nombre": "Corte defensivo", "desc": "Ataque que protege al usuario"}
+                Tajo_firme,
+                Golpe_con_escudo,
+                Corte_defensivo
             ],
             "Tanque": [
-                {"nombre": "Martillazo", "desc": "Golpe fuerte directo"},
-                {"nombre": "Golpe pesado", "desc": "Más daño, pero más lento"},
-                {"nombre": "Impacto sísmico", "desc": "Salta y hace retumbar el suelo"}
+                Martillazo,
+                Golpe_pesado,
+                Impacto_sismico
             ],
             "Arquero": [
-                {"nombre": "Disparo rápido", "desc": "Ataque veloz con daño moderado"},
-                {"nombre": "Flecha precisa", "desc": "Ataque más potente y preciso"},
-                {"nombre": "Disparo doble", "desc": "Dos disparos rápidos seguidos"}
+                Disparo_rapido,
+                Flecha_precisa,
+                Disparo_doble
             ]
         }
-
         self.ataque_actual = {
             "Caballero": 0,
             "Tanque": 0,
@@ -44,7 +53,7 @@ class PantallaCreacionPersonajes:
 
         for personaje in self.personajes:
             personaje.ataques = [
-                self.ataques_disponibles[personaje.clase][0]["nombre"]
+                self.ataques_disponibles[personaje.clase][0]
             ]
 
         self.clase_actual = 0
@@ -110,7 +119,7 @@ class PantallaCreacionPersonajes:
 
         ataque_elegido = self.ataques_disponibles[clase][self.ataque_actual[clase]]
 
-        personaje.ataques = [ataque_elegido["nombre"]]
+        personaje.ataques = [ataque_elegido]
 
     def subir_stat(self):
         if self.puntos_restantes() <= 0:
@@ -221,7 +230,7 @@ class PantallaCreacionPersonajes:
             color = self.colores["yellow_bright"] if seleccionado else self.colores["light_gray"]
 
             texto = self.font.render(
-                f"{'>' if seleccionado else ' '} {ataque['nombre']}",
+                f"{'>' if seleccionado else ' '} {ataque.nombre()}",
                 True,
                 color
             )
@@ -230,7 +239,7 @@ class PantallaCreacionPersonajes:
 
         # Texto de descripción
         ataque_seleccionado = ataques[self.ataque_actual[clase]]
-        texto_desc = ataque_seleccionado["desc"]
+        texto_desc = ataque_seleccionado.descripcion()
 
         # Crear superficie de texto
         texto_render = self.font.render(texto_desc, True, self.colores["white"])
