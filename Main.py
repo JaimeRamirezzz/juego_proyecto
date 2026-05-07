@@ -202,6 +202,7 @@ from personajes.creacion_personaje_ui import PantallaCreacionPersonajes
 pantalla_creacion = PantallaCreacionPersonajes(font, GB_COLORS)
 aliados = []
 pantalla_recompensa = None
+indice_recompensa = 0
 
 # BUCLE PRINCIPAL
 running = True
@@ -245,8 +246,9 @@ while running:
                 terminado = pantalla_creacion.manejar_evento(event)
 
                 if terminado:
-                    personaje_creado = pantalla_creacion.personaje_actual()
-                    pantalla_recompensa = PantallaRecompensa(font, GB_COLORS, [personaje_creado])
+                    aliados = pantalla_creacion.obtener_personajes()
+                    personaje_a_mejorar = aliados[indice_recompensa]
+                    pantalla_recompensa = PantallaRecompensa(font, GB_COLORS, personaje_a_mejorar)
                     estado_partida = 4
                 
             elif estado_partida == 4:

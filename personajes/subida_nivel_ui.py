@@ -13,12 +13,13 @@ ATAQUES_POR_CLASE = {
 
 
 class PantallaRecompensa:
-    def __init__(self, font, colores, personajes):
+    def __init__(self, font, colores, personaje):
         self.font = font
         self.colores = colores
-        self.personajes = personajes
+        self.personaje = personaje
         self.terminada = False
         self.personaje_actual = 0
+
         self.opcion_actual = 0
         self.stat_actual = 0
         self.ataque_actual = 0
@@ -27,27 +28,27 @@ class PantallaRecompensa:
         self.modo = "menu"  # menu, ataques, stats
         self.puntos_stats = 0
 
-    def personaje(self):
-        if not self.personajes:
-            return None
-
-        if self.personaje_actual >= len(self.personajes):
-            return None
-
-        return self.personajes[self.personaje_actual]
+        self.puntos_usados = {
+            "vida": 0,
+            "ataque": 0,
+            "defensa": 0,
+            "velocidad": 0
+        }
+    
+    def ataques_de_clase(self):
+        return ATAQUES_POR_CLASE[self.personaje.clase]
 
     def ataques_no_aprendidos(self):
-        personaje = self.personaje()
         return [
-            ataque for ataque in ATAQUES_POR_CLASE[personaje.clase]
-            if ataque not in personaje.ataques
+            ataque for ataque in ATAQUES_POR_CLASE[self.personaje.clase]
+            if ataque not in self.personaje.ataques
         ]
 
     def manejar_evento(self, event):
         if event.type != pg.KEYDOWN:
             return False
 
-        personaje = self.personaje()
+        personaje = self.personaje
 
         if personaje is None:
             return True
@@ -66,57 +67,58 @@ class PantallaRecompensa:
                     self.puntos_stats = 2
 
         elif self.modo == "ataques":
-            ataques = self.ataques_no_aprendidos()
+            ataques_no_aprendidos = self.ataques_no_aprendidos()
 
-            if not ataques:
-                return True
+            if event.key == pg.K_UP:
+                if ataques_no_aprendidos:
+                    self.ataque_actual = (self.ataque_actual - 1) % len(ataques_no_aprendidos)
 
-            if event.key == pg.K_LEFT:
-                self.ataque_actual = (self.ataque_actual - 1) % len(ataques)
-
-            elif event.key == pg.K_RIGHT:
-                self.ataque_actual = (self.ataque_actual + 1) % len(ataques)
+            elif event.key == pg.K_DOWN:
+                if ataques_no_aprendidos:
+                    self.ataque_actual = (self.ataque_actual + 1) % len(ataques_no_aprendidos)
 
             elif event.key == pg.K_RETURN:
-                personaje.ataques.append(ataques[self.ataque_actual])
-                self.terminada = True
-                return True
+                if ataques_no_aprendidos:
+                    personaje.ataques.append(ataques_no_aprendidos[self.ataque_actual])
+                    self.terminada = True
+                    return True
+
+            elif event.key == pg.K_ESCAPE:
+                self.modo = "menu"
+                self.ataque_actual = 0
 
         elif self.modo == "stats":
-            if event.key == pg.K_LEFT:
+            if event.key == pg.K_UP:
                 self.stat_actual = (self.stat_actual - 1) % len(self.stats)
 
-            elif event.key == pg.K_RIGHT:
+            elif event.key == pg.K_DOWN:
                 self.stat_actual = (self.stat_actual + 1) % len(self.stats)
 
-            elif event.key == pg.K_RETURN:
+            elif event.key == pg.K_RIGHT:
                 self.subir_stat()
 
-                if self.puntos_stats <= 0:
+            elif event.key == pg.K_LEFT:
+                self.bajar_stat()
+            
+            elif event.key == pg.K_ESCAPE:
+                self.modo = "menu"
+
+            elif event.key == pg.K_RETURN:
+                if self.puntos_stats == 0:
                     self.terminada = True
                     return True
 
         return self.terminada
-    
-    def pasar_siguiente_personaje(self):
-        self.personaje_actual += 1
-        self.opcion_actual = 0
-        self.stat_actual = 0
-        self.ataque_actual = 0
-        self.modo = "menu"
-        self.puntos_stats = 0
 
-        if self.personaje_actual >= len(self.personajes):
-            return True
-
-        return False
 
     def subir_stat(self):
         if self.puntos_stats <= 0:
             return
 
-        personaje = self.personaje()
+        personaje = self.personaje
         stat = self.stats[self.stat_actual]
+
+        self.puntos_usados[stat] += 1
 
         if stat == "vida":
             personaje.hp_max += 2
@@ -133,13 +135,53 @@ class PantallaRecompensa:
 
         self.puntos_stats -= 1
 
-    def dibujar(self, pantalla):
-        personaje = self.personaje()
+    def bajar_stat(self):
+        personaje = self.personaje
+        stat = self.stats[self.stat_actual]
 
-        if personaje is None:
-            texto = self.font.render("ERROR: no hay personajes para mejorar", True, self.colores["red_bright"])
-            pantalla.blit(texto, (200, 300))
+        if self.puntos_usados[stat] <= 0:
             return
+
+        self.puntos_usados[stat] -= 1
+
+        if stat == "vida":
+            personaje.hp_max -= 2
+            personaje.hp_actual = personaje.hp_max
+
+        elif stat == "ataque":
+            personaje.ataque -= 1
+
+        elif stat == "defensa":
+            personaje.defensa -= 1
+
+        elif stat == "velocidad":
+            personaje.velocidad_base -= 1
+
+        self.puntos_stats += 1
+
+    def dibujar_ataque(self, pantalla, ataque, y, seleccionado, aprendido):
+        x = 120
+
+        if aprendido:
+            color = self.colores["green_bright"]
+            texto_extra = "  YA APRENDIDO"
+        elif seleccionado:
+            color = self.colores["yellow_bright"]
+            texto_extra = "  NUEVO"
+        else:
+            color = self.colores["light_gray"]
+            texto_extra = ""
+
+        texto = self.font.render(
+            f"{'>' if seleccionado else ' '} {ataque.nombre()}{texto_extra}",
+            True,
+            color
+        )
+
+        pantalla.blit(texto, (x, y))
+
+    def dibujar(self, pantalla):
+        personaje = self.personaje
 
         titulo = self.font.render("SUBIDA DE NIVEL", True, self.colores["yellow_bright"])
         pantalla.blit(titulo, (380, 60))
@@ -170,27 +212,72 @@ class PantallaRecompensa:
                 pantalla.blit(texto_opcion, (120, 250 + i * 60))
 
         elif self.modo == "ataques":
-            ataques = self.ataques_no_aprendidos()
+            titulo_ataques = self.font.render(
+                "Escoge un ataque nuevo:",
+                True,
+                self.colores["white"]
+            )
+            pantalla.blit(titulo_ataques, (80, 180))
 
-            titulo_ataque = self.font.render("Escoge un ataque nuevo:", True, self.colores["white"])
-            pantalla.blit(titulo_ataque, (80, 180))
+            ataques_clase = self.ataques_de_clase()
+            ataques_no_aprendidos = self.ataques_no_aprendidos()
 
-            if ataques:
-                ataque = ataques[self.ataque_actual]
+            ataque_seleccionado = None
+            if ataques_no_aprendidos:
+                ataque_seleccionado = ataques_no_aprendidos[self.ataque_actual]
 
-                texto_ataque = self.font.render(
-                    f"<  {ataque.nombre()}  >",
-                    True,
-                    self.colores["yellow_bright"]
+            for i, ataque in enumerate(ataques_clase):
+                aprendido = ataque in personaje.ataques
+                seleccionado = ataque == ataque_seleccionado
+
+                self.dibujar_ataque(
+                    pantalla,
+                    ataque,
+                    250 + i * 45,
+                    seleccionado,
+                    aprendido
                 )
-                pantalla.blit(texto_ataque, (120, 270))
 
-                descripcion = self.font.render(
-                    ataque.descripcion(),
+            if ataque_seleccionado is not None:
+                texto_desc = ataque_seleccionado.descripcion()
+
+                texto_render = self.font.render(
+                    texto_desc,
                     True,
-                    self.colores["light_gray"]
+                    self.colores["white"]
                 )
-                pantalla.blit(descripcion, (120, 330))
+
+                padding = 10
+                caja_x = 120
+                caja_y = 410
+
+                caja_ancho = texto_render.get_width() + padding * 2
+                caja_alto = texto_render.get_height() + padding * 2
+
+                pg.draw.rect(
+                    pantalla,
+                    self.colores["dark_gray"],
+                    (caja_x, caja_y, caja_ancho, caja_alto)
+                )
+
+                pg.draw.rect(
+                    pantalla,
+                    self.colores["white"],
+                    (caja_x, caja_y, caja_ancho, caja_alto),
+                    2
+                )
+
+                pantalla.blit(
+                    texto_render,
+                    (caja_x + padding, caja_y + padding)
+                )
+            else:
+                aviso = self.font.render(
+                    "Este personaje ya conoce todos los ataques.",
+                    True,
+                    self.colores["red_bright"]
+                )
+                pantalla.blit(aviso, (120, 410))
 
         elif self.modo == "stats":
             titulo_stats = self.font.render(
@@ -226,7 +313,7 @@ class PantallaRecompensa:
         if self.modo == "menu":
             ayuda_texto = "TAB: cambiar opcion   |   ENTER: confirmar"
         elif self.modo == "ataques":
-            ayuda_texto = "FLECHAS IZQ/DER: cambiar ataque   |   ENTER: aprender"
+            ayuda_texto = "ARRIBA/ABAJO: elegir ataque nuevo   |   ENTER: aprender   |   ESC: volver"
         elif self.modo == "stats":
             ayuda_texto = "FLECHAS IZQ/DER: cambiar stat   |   ENTER: subir"
         else:
