@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from personajes.caballero import Caballero
 from personajes.tanque import Tanque
 from personajes.arquero import Arquero
+from personajes.creacion_personaje_ui import PantallaCreacionPersonajes
+from personajes.subida_nivel_ui import PantallaRecompensa
 
 altura_ventana = 700
 anchura_ventana = 1000
@@ -199,6 +201,7 @@ from personajes.creacion_personaje_ui import PantallaCreacionPersonajes
 
 pantalla_creacion = PantallaCreacionPersonajes(font, GB_COLORS)
 aliados = []
+pantalla_recompensa = None
 
 # BUCLE PRINCIPAL
 running = True
@@ -209,8 +212,10 @@ while running:
         if event.type == pg.QUIT:
             running = False
         elif event.type == pg.KEYDOWN:
-            if event.key == pg.K_ESCAPE:
-                running = False
+            if event.key == pg.K_1:
+                aliados = pantalla_creacion.obtener_personajes()
+                pantalla_recompensa = PantallaRecompensa(font, GB_COLORS, aliados)
+                estado_partida = 4
             # Controles simples para probar
             if estado_partida == 3:
                 if event.key == pg.K_1:
@@ -240,18 +245,21 @@ while running:
                 terminado = pantalla_creacion.manejar_evento(event)
 
                 if terminado:
-                    aliados = pantalla_creacion.obtener_personajes()
+                    personaje_creado = pantalla_creacion.personaje_actual()
+                    pantalla_recompensa = PantallaRecompensa(font, GB_COLORS, [personaje_creado])
+                    estado_partida = 4
+                
+            elif estado_partida == 4:
+                terminado = pantalla_recompensa.manejar_evento(event)
+
+                if terminado:
                     estado_partida = 2
     
     # LÓGICA DEL JUEGO
     if estado_partida == 0:#corresponde con la pantalla de inicio
         pass
     elif estado_partida == 1:
-        terminado = pantalla_creacion.manejar_evento(event)
-
-        if terminado:
-            aliados = pantalla_creacion.obtener_personajes()
-            estado_partida = 2
+        pass
     elif estado_partida ==2:# la animacion que no se si quitar
         estado_partida = 3
         peleilla = enfrentamiento()
@@ -277,6 +285,8 @@ while running:
                     if entidad_actual is None:
                         if enfrentamiento.granTurno():
                             entidad_actual = enfrentamiento.pequeTurno()
+    elif estado_partida == 4:
+        pass
     
     # DIBUJAR
     window.fill(GB_COLORS['black'])
@@ -290,6 +300,9 @@ while running:
     elif estado_partida == 3:
         # Dibujar estado del combate
         peleilla.lo_que_se_ve()
+    elif estado_partida == 4:
+        pantalla_recompensa.dibujar(window)
+
         '''y_offset = 50
         
         titulo = font.render(f"RONDA {enfrentamiento._jugadas}", True, GB_COLORS['white'])
