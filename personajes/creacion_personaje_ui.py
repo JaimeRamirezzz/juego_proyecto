@@ -145,7 +145,7 @@ class PantallaCreacionPersonajes:
             personaje.velocidad_base += 1
 
         self.stat_cambiada = stat
-        self.color_cambio = self.colores["green"]
+        self.color_cambio = self.colores["green_bright"]
         self.tiempo_cambio = pg.time.get_ticks()
 
     def bajar_stat(self):
@@ -168,10 +168,10 @@ class PantallaCreacionPersonajes:
             personaje.velocidad_base -= 1
 
         self.stat_cambiada = stat
-        self.color_cambio = self.colores["red"]
+        self.color_cambio = self.colores["red_bright"]
         self.tiempo_cambio = pg.time.get_ticks()
 
-    def dibujar_barra(self, pantalla, nombre_stat, valor, y, seleccionada):
+    def dibujar_barra(self, pantalla, nombre_stat, valor, valor_inicial, y, seleccionada):
         x = 250
         ancho_max = 250
         alto = 20
@@ -181,17 +181,28 @@ class PantallaCreacionPersonajes:
 
         pg.draw.rect(pantalla, self.colores["dark_gray"], (x, y, ancho_max, alto))
 
-        ancho_barra = valor * 15
-        if ancho_barra > ancho_max:
-            ancho_barra = ancho_max
+        escala = 15
 
-        color = self.colores["yellow_bright"] if seleccionada else self.colores["green_bright"]
+        ancho_inicial = valor_inicial * escala
+        ancho_actual = valor * escala
 
-        if self.stat_cambiada == nombre_stat:
-            if pg.time.get_ticks() - self.tiempo_cambio < 300:
-                color = self.color_cambio
+        if ancho_inicial > ancho_max:
+            ancho_inicial = ancho_max
 
-        pg.draw.rect(pantalla, color, (x, y, ancho_barra, alto))
+        if ancho_actual > ancho_max:
+            ancho_actual = ancho_max
+
+        color_base = self.colores["yellow_bright"] if seleccionada else self.colores["light_gray"]
+
+        pg.draw.rect(pantalla, color_base, (x, y, ancho_inicial, alto))
+
+        if ancho_actual > ancho_inicial:
+            ancho_extra = ancho_actual - ancho_inicial
+            pg.draw.rect(
+                pantalla,
+                self.colores["green_bright"],
+                (x + ancho_inicial, y, ancho_extra, alto)
+            )
 
         valor_texto = self.font.render(str(valor), True, self.colores["white"])
         pantalla.blit(valor_texto, (530, y - 2))
