@@ -7,6 +7,7 @@ class Enemy:
         self.current_mobility = mobility
         self.color = () #colocar color
         self.base_damage = 100
+        self.turn = False
         
         # subir nivel
         self.level = level
@@ -30,11 +31,16 @@ class Enemy:
         progressive_damage = int(self.base_damage * (1.15 ** (self.level - 1)))
         return progressive_damage
 
-    def attack(self, target):
+    def attack(self, Combat_Manager, target):
+        #combat manager lo cree en otra carpeta
 
-        actual_damage = self.calculate_damage()
-        target.health -= actual_damage
-        print(f"Daño del {self.name} {actual_damage}")
+        if self.turn:
+            actual_damage = self.calculate_damage()
+            target.health -= actual_damage
+            print(f"Daño del {self.name} {actual_damage}")
+            Combat_manager.next_turn()
+        else:
+            pass
 
     def take_damage(self, amount):
   
@@ -48,32 +54,32 @@ class Enemy:
 
         poner en funcion de mi otra funcion de busqueda simplemente cambiar nombres self.current_node y routes_dict
         """
-        if self.current_node in routes_dict:
-            available_paths = routes_dict[self.current_node]
-            print(f"Rutas disponibles {self.current_node}: {available_paths}")
+        if self.turn == True:
+            if self.current_node in routes_dict:
+                available_paths = routes_dict[self.current_node]
+                print(f"Rutas disponibles {self.current_node}: {available_paths}")
             return available_paths
-        else:
-            print(f"Nodo {self.current_node} no encontrado")
-            return []
 
-    def take_turn(self, target_node, path_table):
-        # Resetea la mobilidad
-        self.current_mobility = self.max_mobility
+    def take_turn(self, master_path_table, master_distance_table, target_node, path_table, Combat_manager):
+        
+        
 
         # chequeo de seguiridad para evitar errores
-        if self.current_node in path_table and target_node in path_table[self.current_node]:
+
+        if self.turn: 
+            if self.current_node in path_table and target_node in path_table[self.current_node]:
             # mira las rutas del mapa
 
-            path_table = master_path_table[self.current_node][target_node]
+                path_table = master_path_table[self.current_node][target_node]
 
             
-            distance_to_path = master_distance_table[self.current_node][target_node]
+                distance_to_path = master_distance_table[self.current_node][target_node]
 
-            self.max_mobility -= distance_to_path
+                self.max_mobility -= distance_to_path
  
 
-            print(f"\n-Turno enemigo-")
-            print(f"objetivo: {target_node} | camino: {path}")
-        else:
-            print(f"\n-Turno enemigo")
-            print("No encontrado")
+                print(f"\n-Turno enemigo-")
+                print(f"objetivo: {target_node} | camino: {path}")
+                Combat_manager.next_turn()
+                self.current_mobility = self.max_mobility 
+
