@@ -22,9 +22,6 @@ class PantallaCreacionPersonajes:
         self.ultimo_movimiento = 0
         self.espera_movimiento = 200
 
-        self.stat_cambiada = None
-        self.color_cambio = None
-        self.tiempo_cambio = 0
 
         self.personajes = [
             Caballero("Caballero"),
@@ -144,10 +141,6 @@ class PantallaCreacionPersonajes:
         elif stat == "velocidad":
             personaje.velocidad_base += 1
 
-        self.stat_cambiada = stat
-        self.color_cambio = self.colores["green"]
-        self.tiempo_cambio = pg.time.get_ticks()
-
     def bajar_stat(self):
         personaje = self.personaje_actual()
         stat = self.stats[self.stat_actual]
@@ -167,9 +160,6 @@ class PantallaCreacionPersonajes:
         elif stat == "velocidad":
             personaje.velocidad_base -= 1
 
-        self.stat_cambiada = stat
-        self.color_cambio = self.colores["red"]
-        self.tiempo_cambio = pg.time.get_ticks()
 
     def dibujar_barra(self, pantalla, nombre_stat, valor, y, seleccionada):
         x = 250
@@ -182,14 +172,11 @@ class PantallaCreacionPersonajes:
         pg.draw.rect(pantalla, self.colores["dark_gray"], (x, y, ancho_max, alto))
 
         ancho_barra = valor * 15
+
         if ancho_barra > ancho_max:
             ancho_barra = ancho_max
 
         color = self.colores["yellow_bright"] if seleccionada else self.colores["green_bright"]
-
-        if self.stat_cambiada == nombre_stat:
-            if pg.time.get_ticks() - self.tiempo_cambio < 300:
-                color = self.color_cambio
 
         pg.draw.rect(pantalla, color, (x, y, ancho_barra, alto))
 
