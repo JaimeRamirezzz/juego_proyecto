@@ -10,6 +10,6 @@ class Arquero(Personaje):
             ataque=5,
             defensa=2,
             velocidad=6,
-            ataques=["Disparo rápido", "Flecha precisa", "Disparo doble"],
+            ataques=[],
             equipo=equipo
         )

@@ -10,6 +10,6 @@ class Tanque(Personaje):
             ataque=3,
             defensa=6,
             velocidad=2,
-            ataques=["Martillazo", "Golpe pesado", "Impacto sísmico"],
+            ataques=[],
             equipo=equipo
         )
