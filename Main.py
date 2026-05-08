@@ -208,7 +208,8 @@ indice_recompensa = 0
 running = True
 while running:
     dt = clock.get_time() / 1000.0
-    
+    pos_raton = pg.mouse.get_pos()
+
     for event in pg.event.get():
         if event.type == pg.QUIT:
             running = False
@@ -218,26 +219,6 @@ while running:
                 pantalla_recompensa = PantallaRecompensa(font, GB_COLORS, aliados)
                 estado_partida = 4
             # Controles simples para probar
-            if estado_partida == 3:
-                if event.key == pg.K_1:
-                    # Atacar automáticamente con el jugador actual
-                    if entidad_actual and entidad_actual.equipo == "jugador":
-                        objetivos = Enfrentamiento.obtener_objetivos_validos(entidad_actual)
-                        if objetivos:
-                            objetivo = objetivos[0]
-                            daño = entidad_actual.realizar_ataque(objetivo)
-                            objetivo.recibir_daño(daño)
-                            print(f"¡{entidad_actual.nombre} hace {daño:.1f} daño a {objetivo.nombre}!")
-                            
-                            Enfrentamiento._actualizar_lista_entidades()
-                            if Enfrentamiento._verificar_fin_combate():
-                                pass
-                            else:
-                                Enfrentamiento.finalizar_turno()
-                                entidad_actual = Enfrentamiento.pequeTurno()
-                                if entidad_actual is None:
-                                    if Enfrentamiento.granTurno():
-                                        entidad_actual = Enfrentamiento.pequeTurno()
             elif estado_partida == 0:
                 if event.key == pg.K_SPACE:
                     estado_partida = 1
@@ -256,6 +237,37 @@ while running:
 
                 if terminado:
                     estado_partida = 2
+
+        if estado_partida == 3:
+            if event.type == pg.MOUSEBUTTONDOWN:
+                if event.button == 1: # Botón izquierdo del ratón presionado
+                    if pos_raton[1] > 550:# es temporal, se encargará de saber si el raton está por debajo del mapa o no
+                        pass
+
+                elif event.button == 2: # Botón medio del ratón presionado
+                    pass
+                elif event.button == 3: # Botón derecho del ratón presionado
+                    pass
+            '''if event.key == pg.K_1:
+                # Atacar automáticamente con el jugador actual
+                if entidad_actual and entidad_actual.equipo == "jugador":
+                    objetivos = Enfrentamiento.obtener_objetivos_validos(entidad_actual)
+                    if objetivos:
+                        objetivo = objetivos[0]
+                        daño = entidad_actual.realizar_ataque(objetivo)
+                        objetivo.recibir_daño(daño)
+                        print(f"¡{entidad_actual.nombre} hace {daño:.1f} daño a {objetivo.nombre}!")
+                        
+                        Enfrentamiento._actualizar_lista_entidades()
+                        if Enfrentamiento._verificar_fin_combate():
+                            pass
+                        else:
+                            Enfrentamiento.finalizar_turno()
+                            entidad_actual = Enfrentamiento.pequeTurno()
+                            if entidad_actual is None:
+                                if Enfrentamiento.granTurno():
+                                    entidad_actual = Enfrentamiento.pequeTurno()
+'''
     
     # LÓGICA DEL JUEGO
     if estado_partida == 0:#corresponde con la pantalla de inicio
