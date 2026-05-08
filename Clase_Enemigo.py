@@ -1,13 +1,19 @@
 class Enemy:
-    def __init__(self, start_node, health, mobility, level=1):
+    _id_counter = 10000 # para dar prioridad a los personajes jugables
+    def __init__(self, start_node, health, mobility, velocidad, level=1, equipo="enemigo"):
         self.current_node = start_node
         self.health = health
         self.max_health = health
         self.max_mobility = mobility
         self.current_mobility = mobility
         self.color = () #colocar color
-        self.base_damage = 100
+        self.base_damage = 10 # nerf importante
         self.turn = False
+        self.velocidad = velocidad
+        self.equipo = equipo
+        self._vivo = True
+        self.id = Enemy._id_counter
+        Enemy._id_counter +=1
         
         # subir nivel
         self.level = level
@@ -43,9 +49,14 @@ class Enemy:
             pass
 
     def take_damage(self, amount):
-  
+
         self.health -= amount
+        if self.health <= 0:
+            self._vivo=False
         print(f"Daño recibido {amount}! vida {self.health}")
+    
+    def esta_vivo(self):
+        return self._vivo
 
     def evaluate_routes(self, routes_dict):
         """
