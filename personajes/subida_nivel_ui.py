@@ -315,7 +315,7 @@ class PantallaRecompensa:
         elif self.modo == "ataques":
             ayuda_texto = "ARRIBA/ABAJO: elegir ataque nuevo   |   ENTER: aprender   |   ESC: volver"
         elif self.modo == "stats":
-            ayuda_texto = "FLECHAS IZQ/DER: cambiar stat   |   ENTER: subir"
+            ayuda_texto = "FLECHAS IZQ/DER: cambiar stat   |   ENTER: subir  |   ESC: volver"
         else:
             ayuda_texto = "ENTER: continuar"
 
