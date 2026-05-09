@@ -357,7 +357,7 @@ class MapaProcedural:
             for x in range(self.ancho):
                 casilla = self.casillas[y][x]
                 
-                if casilla.tipo == Tipo_casilla.OBSTACULO or Casilla.esta_ocupada():
+                if casilla.tipo == Tipo_casilla.OBSTACULO or casilla.esta_ocupada():
                     continue
                 
                 if r.random() < densidad:
