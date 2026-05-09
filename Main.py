@@ -116,6 +116,8 @@ class Enfrentamiento:
             self.paso_de_ronda()
             return None
         self.entidad_actual = self.orden.pop()
+        if self.entidad_actual.equipo == "jugador":
+            self.entidad_actual.recuperacion_por_turnos()
         
         self.historial_turnos.append({
             "Ronda": self._jugadas,
@@ -123,6 +125,12 @@ class Enfrentamiento:
             "Equipo": self.entidad_actual.equipo
         })
         
+    def ataque_real(self, indice, destino):#lo de real es para diferenciarlo de todo ataque existente, y lo de destino es a donde termina, porque el origen ya lo tendremos que es el self.activo o algo asi, me da pereza vuscar como estaba llamada el personaje que le toca atacar
+        if self.entidad_actual.atacar(indice):
+            pass # aquí necesito el mapa para atacar
+        else:
+            pass
+
     def iniciar_combate(self, usar_atb=False):
         self.usar_atb = usar_atb
         self.activo = True

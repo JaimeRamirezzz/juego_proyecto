@@ -18,9 +18,29 @@ class Personaje:
         self.ataque = ataque
         self.defensa = defensa
         self.velocidad_base = velocidad
+        
+        self.aguante = 10
+        self.capacidad_aguante = self.aguante
+        self.capacidad_aguante_max = self.aguante * 2
 
         self.ataques = ataques if ataques is not None else []
         self.vivo = True
+
+    def recuperacion_por_turno(self): #Para la implementacion de los ataques con consumo de energia
+        if self.capacidad_aguante_max < self.aguante + self.capacidad_aguante:
+            self.capacidad_aguante = self.capacidad_aguante_max
+        else:
+            self.capacidad_aguante += self.aguante
+
+    def atacar(self, indice):
+        if len(self.ataques) > indice:
+            if self.ataques[indice].coste() > self.capacidad_aguante:
+                return False
+            else:
+                self.capacidad_aguante = self.ataques[indice].coste() > self.capacidad_aguante
+                return True
+        else:
+            return False
 
     def velocidad(self):
         return self.velocidad_base
