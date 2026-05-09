@@ -123,7 +123,6 @@ class Enfrentamiento:
             "Equipo": self.entidad_actual.equipo
         })
         
-        
     def iniciar_combate(self, usar_atb=False):
         self.usar_atb = usar_atb
         self.activo = True
