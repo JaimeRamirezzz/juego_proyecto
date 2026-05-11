@@ -59,15 +59,21 @@ class Configuracionmapa:
 # si queremos que los enemigos se generen por el tipo de mapa, hay que indicar
 # que tipo de enemigo queremos que se genere dependiendo del bioma y meter la class enemigo aqui
 class Enemy:
-    def __init__(self, start_node, health, mobility, level=1):
+    _id_counter = 10000 # para dar prioridad a los personajes jugables
+    def __init__(self, start_node, health, mobility, velocidad, level=1, equipo="enemigo"):
         self.current_node = start_node
         self.health = health
         self.max_health = health
         self.max_mobility = mobility
         self.current_mobility = mobility
         self.color = () #colocar color
-        self.base_damage = 100
+        self.base_damage = 10 # nerf importante
         self.turn = False
+        self.velocidad = velocidad
+        self.equipo = equipo
+        self._vivo = True
+        self.id = Enemy._id_counter
+        Enemy._id_counter +=1
         
         # subir nivel
         self.level = level
@@ -103,9 +109,14 @@ class Enemy:
             pass
 
     def take_damage(self, amount):
-  
+
         self.health -= amount
+        if self.health <= 0:
+            self._vivo=False
         print(f"Daño recibido {amount}! vida {self.health}")
+    
+    def esta_vivo(self):
+        return self._vivo
 
     def evaluate_routes(self, routes_dict):
         """
@@ -119,6 +130,31 @@ class Enemy:
                 available_paths = routes_dict[self.current_node]
                 print(f"Rutas disponibles {self.current_node}: {available_paths}")
             return available_paths
+
+    def take_turn(self, master_path_table, master_distance_table, target_node, path_table, Combat_manager):
+        
+        
+
+        # chequeo de seguiridad para evitar errores
+
+        if self.turn: 
+            if self.current_node in path_table and target_node in path_table[self.current_node]:
+            # mira las rutas del mapa
+
+                path_table = master_path_table[self.current_node][target_node]
+
+            
+                distance_to_path = master_distance_table[self.current_node][target_node]
+
+                self.max_mobility -= distance_to_path
+ 
+
+                print(f"\n-Turno enemigo-")
+                print(f"objetivo: {target_node} | camino: {path}")
+                Combat_manager.next_turn()
+                self.current_mobility = self.max_mobility 
+
+
 # necesitamos definir la clase casilla para que hayan vacias, con obstaculos, movimiento, zona de ataque
 # zona seleccionada, casilla en donde este el jugador y la casilla donde este el enemigo.
 class Casilla:
@@ -270,9 +306,9 @@ class MapaProcedural:
         TipoBioma.PRADERA: {'caminable': True, 'costo': 1.0},
         TipoBioma.BOSQUE: {'caminable': True, 'costo': 1.5, 'cobertura': 20},
         TipoBioma.MONTAÑA: {'caminable': False, 'costo': 2.9},
-        TipoBioma.NIEVE: {'caminable': True, 'costo': 2.5, 'resbaladizo': True},
-        TipoBioma.LAVA: {'caminable': False, 'costo': 3.9, 'daño': 20},
-        TipoBioma.PANTANO: {'caminable': True, 'costo': 3.0, 'veneno': 0.1},
+        TipoBioma.NIEVE: {'caminable': True, 'costo': 2.5},
+        TipoBioma.LAVA: {'caminable': False, 'costo': 3.9},
+        TipoBioma.PANTANO: {'caminable': True, 'costo': 3.0},
     }
     def __init__(self, ancho: int, alto: int, tamaño_casilla: int = 40, 
                  config: Configuracionmapa = None, carpeta_sprites: str = "imagen"):
@@ -343,10 +379,6 @@ class MapaProcedural:
                 casilla.bioma = bioma
                 casilla.costo_movimiento = props['costo']
                 casilla.cobertura = props.get('cobertura', 0)
-                casilla.resbaladizo = props.get('resbaladizo', False)
-                casilla.daño_terreno = props.get('daño', 0)
-                casilla.prob_veneno = props.get('veneno', 0.0)
-                
                 fila.append(casilla)
             self.casillas.append(fila)
 
@@ -373,13 +405,13 @@ class MapaProcedural:
 
     def _crear_enemigo(self, tipo: TipoEnemigo, id_enemigo: int, x: int, y: int) -> Enemy:
         stats_base = {
-            TipoEnemigo.SLIME_AGUA: {"nombre": "Slime de Agua", "vida": 4, "ataque": 8, "defensa": 5},
-            TipoEnemigo.LOBO_BOSQUE: {"nombre": "Lobo del Bosque", "vida": 45, "ataque": 15, "defensa": 8},
-            TipoEnemigo.GOLEM_MONTAÑA: {"nombre": "Golem de Piedra", "vida": 10, "ataque": 20, "defensa": 25},
-            TipoEnemigo.ESQUELETO_NIEVE: {"nombre": "Esqueleto Helado", "vida": 13, "ataque": 12, "defensa": 6},
-            TipoEnemigo.ELEMENTAL_FUEGO: {"nombre": "Elemental de Fuego", "vida": 5, "ataque": 25, "defensa": 10},
-            TipoEnemigo.COCODRILO_PANTANO: {"nombre": "Cocodrilo del Pantano", "vida": 10, "ataque": 18, "defensa": 15},
-            TipoEnemigo.BANDIDO_PRADERA: {"nombre": "Bandido", "vida": 40, "ataque": 14, "defensa": 10},
+            TipoEnemigo.SLIME_AGUA: {"nombre": "Slime de Agua", "vida": 4, "ataque": 8, "defensa": 5, "velocidad": 3},
+            TipoEnemigo.LOBO_BOSQUE: {"nombre": "Lobo del Bosque", "vida": 45, "ataque": 15, "defensa": 8, "velocidad": 6},
+            TipoEnemigo.GOLEM_MONTAÑA: {"nombre": "Golem de Piedra", "vida": 10, "ataque": 20, "defensa": 25, "velocidad": 10},
+            TipoEnemigo.ESQUELETO_NIEVE: {"nombre": "Esqueleto Helado", "vida": 13, "ataque": 12, "defensa": 6, "velocidad": 17},
+            TipoEnemigo.ELEMENTAL_FUEGO: {"nombre": "Elemental de Fuego", "vida": 5, "ataque": 25, "defensa": 10, "velocidad": 25},
+            TipoEnemigo.COCODRILO_PANTANO: {"nombre": "Cocodrilo del Pantano", "vida": 10, "ataque": 18, "defensa": 15, "velocidad": 12},
+            TipoEnemigo.BANDIDO_PRADERA: {"nombre": "Bandido", "vida": 8, "ataque": 14, "defensa": 10},
         }
         
         stats = stats_base.get(tipo, {"nombre": "Desconocido", "vida": 10, "ataque": 5, "defensa": 2})
