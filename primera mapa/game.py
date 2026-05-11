@@ -33,7 +33,7 @@ archivos_niveles = [
 mapas_del_juego = [] #Es una lista que contiene todos tus objetos Mapa ya cargados en la memoria.
 for archivo in archivos_niveles:
     # Creamos el objeto mapa y lo añadimos a la lista (asumo 32 como tamaño)
-    nuevo_mapa = Mapa(archivo, tipos_terreno, 52) 
+    nuevo_mapa = Mapa(archivo, tipos_terreno, 62) 
     mapas_del_juego.append(nuevo_mapa)
 
 # 3. Variable para controlar en qué nivel está el jugador (0 es el primer nivel)
