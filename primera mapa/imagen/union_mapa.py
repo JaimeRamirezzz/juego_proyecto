@@ -402,13 +402,13 @@ class MapaProcedural:
 
     def _crear_enemigo(self, tipo: TipoEnemigo, id_enemigo: int, x: int, y: int) -> Enemy:
         stats_base = {
-            TipoEnemigo.SLIME_AGUA: {"nombre": "Slime de Agua", "vida": 4, "ataque": 8, "defensa": 5, "velocidad": 3},
-            TipoEnemigo.LOBO_BOSQUE: {"nombre": "Lobo del Bosque", "vida": 45, "ataque": 15, "defensa": 8, "velocidad": 6},
-            TipoEnemigo.GOLEM_MONTAÑA: {"nombre": "Golem de Piedra", "vida": 10, "ataque": 20, "defensa": 25, "velocidad": 10},
-            TipoEnemigo.ESQUELETO_NIEVE: {"nombre": "Esqueleto Helado", "vida": 13, "ataque": 12, "defensa": 6, "velocidad": 17},
+            TipoEnemigo.SLIME_AGUA: {"nombre": "Slime de Agua", "vida": 4, "ataque": 2, "defensa": 5, "velocidad": 6},
+            TipoEnemigo.LOBO_BOSQUE: {"nombre": "Lobo del Bosque", "vida": 9, "ataque": 15, "defensa": 8, "velocidad": 20},
+            TipoEnemigo.GOLEM_MONTAÑA: {"nombre": "Golem de Piedra", "vida": 25, "ataque": 20, "defensa": 25, "velocidad": 4},
+            TipoEnemigo.ESQUELETO_NIEVE: {"nombre": "Esqueleto Helado", "vida": 13, "ataque": 12, "defensa": 6, "velocidad": 13},
             TipoEnemigo.ELEMENTAL_FUEGO: {"nombre": "Elemental de Fuego", "vida": 5, "ataque": 25, "defensa": 10, "velocidad": 25},
             TipoEnemigo.COCODRILO_PANTANO: {"nombre": "Cocodrilo del Pantano", "vida": 10, "ataque": 18, "defensa": 15, "velocidad": 12},
-            TipoEnemigo.BANDIDO_PRADERA: {"nombre": "Bandido", "vida": 8, "ataque": 14, "defensa": 10},
+            TipoEnemigo.BANDIDO_PRADERA: {"nombre": "Bandido", "vida": 8, "ataque": 14, "defensa": 10, "velocidad": 15},
         }
         
         stats = stats_base.get(tipo, {"nombre": "Desconocido", "vida": 10, "ataque": 5, "defensa": 2})
