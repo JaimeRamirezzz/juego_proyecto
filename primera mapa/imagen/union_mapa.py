@@ -181,10 +181,7 @@ class Casilla:
         self.bioma = TipoBioma.PRADERA
         # propiedades de terreno
         self.costo_movimiento = 1.0
-        self.cobertura = 0
-        self.resbaladizo = False
-        self.daño_terreno = 0
-        self.prob_veneno = 0.0
+     
 
     def color_casilla(self):
         return self.COLORES_TIPO.get(self.tipo, (200, 200, 200))
