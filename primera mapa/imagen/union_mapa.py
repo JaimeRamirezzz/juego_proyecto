@@ -422,6 +422,7 @@ class MapaProcedural:
 import numpy as np
 
 na = np.nan
+# self.casillas = [] poner la en la variable en np.array, y colocarlo
 graph = np.array([[0, 7, 9, 5, na, 14],
                   [7, 0, 10, 15, na, na],
                   [9, 10, 0, 11, na, 2],
