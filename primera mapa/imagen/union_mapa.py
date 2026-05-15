@@ -6,6 +6,10 @@ from typing import Optional, List, Tuple, Dict
 from dataclasses import dataclass
 import os
 
+ANCHO_PANTALLA = 120
+ALTO_PANTALLA = 90
+ALTO_PANEL = 20
+ALTO_MAPA = ALTO_PANTALLA - ALTO_PANEL - 20
 # Clase para definir las propiedades de cada tipo de suelo/terreno de manera aleatoria
 class TipoBioma(Enum):
     AGUA_PROFUNDA = auto()
