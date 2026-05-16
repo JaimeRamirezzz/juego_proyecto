@@ -73,6 +73,7 @@ class ColaEnlazada:
         self.front = None
         self.rear = None
 
+from panel_ataques import PanelAtaques
 
 class Enfrentamiento:
     def __init__(self, jugadores: list, mapa_tablero=None):
@@ -88,6 +89,7 @@ class Enfrentamiento:
         self.activo = False
         self.ganador = None
         self.usar_atb = False
+        self.panel_ui = PanelAtaques(0, 350, 800, 250)
         self.paso_de_ronda()
         
     def _actualizar_lista_entidades(self):
@@ -118,6 +120,8 @@ class Enfrentamiento:
         self.entidad_actual = self.orden.pop()
         if self.entidad_actual.equipo == "jugador":
             self.entidad_actual.recuperacion_por_turnos()
+       
+        self.panel_ui.actualizar_jugador(self.entidad_actual)
         
         self.historial_turnos.append({
             "Ronda": self._jugadas,
@@ -182,10 +186,7 @@ class Enfrentamiento:
         #No se si en mostrar mapa estará tambien mostrar aliados y enemigos
 
     def mostrar_ui(self):
-        if self.entidad_actual in self.aliados:
-            self.entidad_actual.mostrar_en_turno()
-            window.blit(font.render(f"Ronda:{self._jugadas}", True, GB_COLORS["white"]), (380, 200))#Las coordenadas se cambiaran y se ajustaran cuando el mapa se pueda ver
-
+        self.panel_ui.dibujar(window, self._jugadas, self.entidad_actual)
 
 
 #Bucle de enfrentamientos

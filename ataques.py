@@ -18,7 +18,7 @@ class Ataque:
     def descripcion(self):
         return self._descripcion
     
-   def coste(self):
+    def coste(self):
         return self.desgaste
 
     def atacar(self, atacante, objetivo):
