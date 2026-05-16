@@ -135,7 +135,7 @@ class Enfrentamiento:
         else:
             pass
 
-    def iniciar_combate(self, usar_atb=False):
+    def iniciar_combate(self, usar_atb=False):#Falta revisar, de momento no usar
         self.usar_atb = usar_atb
         self.activo = True
         for e in self.todas_entidades:
@@ -145,7 +145,7 @@ class Enfrentamiento:
             return self.pequeTurno()
         return None
         
-    def finalizar_turno(self, acciones_realizadas=None):
+    def finalizar_turno(self, acciones_realizadas=None):#Falta revisar, de momento no usar
         if self.entidad_actual:
             self.entidad_actual.reset_atb()
         if acciones_realizadas:
@@ -154,7 +154,7 @@ class Enfrentamiento:
             return self.granTurno()
         return True
         
-    def _verificar_fin_combate(self) -> bool:
+    def _verificar_fin_combate(self) -> bool: #Falta revisar, de momento no usar
         aliados_vivos = any(e.esta_vivo() for e in self.aliados)
         enemigos_vivos = any(e.esta_vivo() for e in self.enemigos)
         
@@ -172,7 +172,7 @@ class Enfrentamiento:
             
         return False
         
-    def obtener_objetivos_validos(self, atacante=None):
+    def obtener_objetivos_validos(self, atacante=None):#Falta el mapa y falta revisar, de momento no usar
         atacante = atacante or self.entidad_actual
         if not atacante:
             return []
@@ -191,7 +191,7 @@ class Enfrentamiento:
 
 #Bucle de enfrentamientos
 
-def bucle_de_combate(Enfrentamiento):
+def bucle_de_combate(Enfrentamiento):#Se usará el de arriba, este se creó por falta de comunicacion
       Enfrentamiento.activo = True
       print("¡Comienza el combate!")
 

@@ -21,14 +21,14 @@ class Personaje:
         
         self.aguante = 10
         self.capacidad_aguante = self.aguante
-        self.capacidad_aguante_max = self.aguante * 2
 
         self.ataques = ataques if ataques is not None else []
         self.vivo = True
 
     def recuperacion_por_turno(self): #Para la implementacion de los ataques con consumo de energia
-        if self.capacidad_aguante_max < self.aguante + self.capacidad_aguante:
-            self.capacidad_aguante = self.capacidad_aguante_max
+        #He la capacidad de aguante maximo es aguante * 2, pero ahora no hay una variable que sea el maximo
+        if self.aguante < self.capacidad_aguante:
+            self.capacidad_aguante = self.aguante * 2
         else:
             self.capacidad_aguante += self.aguante
 
