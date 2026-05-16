@@ -18,8 +18,8 @@ class Ataque:
     def descripcion(self):
         return self._descripcion
     
-    def coste(self):
-        return self._coste
+   def coste(self):
+        return self.desgaste
 
     def atacar(self, atacante, objetivo):
         daño = self._potencia + atacante.ataque
