@@ -82,8 +82,8 @@ class Enemy:
         if self.experience >= exp_needed:
             self.level += 1
             self.experience -= exp_needed
-            self.max_health = int(self.max_health * 1.25) 
-            self.health = self.max_health                
+            self.hp_max = int(self.self.hp_max * 1.25) 
+            self.hp_actual =  self.hp_max               
             print(f"Enemy {self.nombre} leveled up to Level {self.level}!")
 
 
