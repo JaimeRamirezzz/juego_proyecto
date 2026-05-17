@@ -1,4 +1,4 @@
-
+import numpy as np
 
 class Enemy:
     _id_counter = 10000 # para dar prioridad a los personajes jugables
@@ -25,7 +25,49 @@ class Enemy:
         # subir nivel
         self.level = level
         self.experience = 0
-#  Enfrentamiento necesita que esto sea un método para calcular_orden()
+# 1. EL CEREBRO DEL ENEMIGO (algoritmo cadena de markov)
+        # Lo guardamos aquí para que este enemigo recuerde sus propias probabilidades
+        self.matriz_comportamiento = np.array([
+            [0.7, 0.2, 0.1], # Fila 0 - Vida Alta:  [Ataque, Defensa, Huir]
+            [0.4, 0.5, 0.1], # Fila 1 - Vida Media: [Ataque, Defensa, Huir]
+            [0.2, 0.3, 0.5]  # Fila 2 - Vida Baja:  [Ataque, Defensa, Huir]
+        ])
+        self.lista_acciones = ["Ataque", "Defensa", "Huida"]
+
+
+# traductor:
+    # Esta función traduce la vida matemática a la fila de la matriz
+    def evaluar_estado_salud(self):
+        porcentaje_vida = self.hp_actual / self.hp_max
+        
+        if porcentaje_vida > 0.66:
+            return 0  # Vida Alta -> Fila 0
+        elif porcentaje_vida > 0.33:
+            return 1  # Vida Media -> Fila 1
+        else:
+            return 2  # Vida Baja -> Fila 2
+    
+    
+    #  Enfrentamiento necesita que esto sea un método para calcular_orden
+    
+    def decidir_accion(self):
+        # Averiguamos en qué estado (fila) está basándonos en su vida real
+        estado_actual = self.evaluar_estado_salud()
+        
+        # Sacamos las probabilidades de esa fila
+        probabilidades = self.matriz_comportamiento[estado_actual]
+        
+        #  Elige 0, 1 o 2 según las probabilidades de numpy
+        eleccion = np.random.choice([0, 1, 2], p=probabilidades)
+        
+        accion_elegida = self.lista_acciones[eleccion]
+        
+        print(f"🧠 {self.nombre} (HP: {self.hp_actual}/{self.hp_max}) evalúa su situación...")
+        print(f"Decisión tomada: {accion_elegida}")
+        
+        return accion_elegida
+
+    
     def velocidad(self):
         return self._velocidad
 
@@ -49,11 +91,6 @@ class Enemy:
         progressive_damage = int(self.base_damage * (1.15 ** (self.level - 1)))
         return progressive_damage
 
-    # MODIFICADO: Se llama realizar_ataque. 
-    # Ahora SOLO devuelve el número de daño. Pygame se encarga de aplicarlo.
-    def realizar_ataque(self, objetivo):
-        daño = self.calculate_damage()
-        return daño
 
     # MODIFICADO: Se llama recibir_daño y usa hp_actual
     def recibir_daño(self, amount):
