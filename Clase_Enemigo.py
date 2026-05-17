@@ -1,4 +1,5 @@
 import numpy as np
+import random as r
 
 class Enemy:
     _id_counter = 10000 # para dar prioridad a los personajes jugables
