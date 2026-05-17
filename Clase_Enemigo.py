@@ -1,4 +1,4 @@
-import random # Necesario para que la IA elija un objetivo al azar
+
 
 class Enemy:
     _id_counter = 10000 # para dar prioridad a los personajes jugables
@@ -7,15 +7,16 @@ class Enemy:
     def __init__(self, nombre, start_node, health, mobility, velocidad, level=1, equipo="enemigo"):
         self.nombre = nombre # <--- NUEVO
         self.current_node = start_node
-        self.health = health
-        self.max_health = health
+        #Cambiado a hp_actual y hp_max para coincidir con la lógica gráfica
+        self.hp_max = max_health
+        self.hp_actual = max_health
         self.max_mobility = mobility
         self.current_mobility = mobility
         self.color = () 
         self.base_damage = 10 
-        self.velocidad = velocidad
+        # guardamos la velocidad en una variable interna
+        self._velocidad = stat_velocidad
         self.equipo = equipo
-        self._vivo = True
         self.id = Enemy._id_counter
         Enemy._id_counter += 1
         
@@ -24,6 +25,13 @@ class Enemy:
         # subir nivel
         self.level = level
         self.experience = 0
+#  Enfrentamiento necesita que esto sea un método para calcular_orden()
+    def velocidad(self):
+        return self._velocidad
+
+# +Comprueba hp_actual en lugar de una variable booleana separada
+    def esta_vivo(self):
+        return self.hp_actual > 0
 
     def level_up(self, exp_gained):
         self.experience += exp_gained
@@ -36,43 +44,24 @@ class Enemy:
             self.health = self.max_health                
             print(f"Enemy {self.nombre} leveled up to Level {self.level}!")
 
+
     def calculate_damage(self):
         progressive_damage = int(self.base_damage * (1.15 ** (self.level - 1)))
         return progressive_damage
 
-    # NUEVO: El bucle llama a este método para que la IA decida a quién golpear
-    def ia_decidir_objetivo(self, aliados):
-        # Filtramos para asegurarnos de que el enemigo no ataque a un aliado que ya está muerto
-        aliados_vivos = [aliado for aliado in aliados if aliado.esta_vivo()]
-        
-        if aliados_vivos:
-            # Lógica básica: Elige un aliado al azar. 
-            # (En el futuro puedes cambiar esto para que ataque al de menos vida, por ejemplo)
-            return random.choice(aliados_vivos)
-        return None
+    # MODIFICADO: Se llama realizar_ataque. 
+    # Ahora SOLO devuelve el número de daño. Pygame se encarga de aplicarlo.
+    def realizar_ataque(self, objetivo):
+        daño = self.calculate_damage()
+        return daño
 
-    # MODIFICADO: Se cambió el nombre de 'attack' a 'atacar' para coincidir con el bucle.
-    # Además, se eliminó el parámetro Combat_Manager. El enemigo solo se preocupa de hacer daño.
-    def atacar(self, target):
-        if target:
-            actual_damage = self.calculate_damage()
-            
-            # Lo ideal es usar el método take_damage del objetivo si lo tiene
-            if hasattr(target, 'take_damage'):
-                target.take_damage(actual_damage)
-            else:
-                target.health -= actual_damage
-                
-            print(f"Daño de {self.nombre}: {actual_damage}")
-
-    def take_damage(self, amount):
-        self.health -= amount
-        if self.health <= 0:
-            self._vivo = False
-        print(f"{self.nombre} recibió {amount} de daño! Vida restante: {self.health}")
+    # MODIFICADO: Se llama recibir_daño y usa hp_actual
+    def recibir_daño(self, amount):
+        self.hp_actual -= amount
+        if self.hp_actual < 0:
+            self.hp_actual = 0
+        print(f"🩸 {self.nombre} recibió {amount} de daño! Vida restante: {self.hp_actual}/{self.hp_max}")
     
-    def esta_vivo(self):
-        return self._vivo
 
     def evaluate_routes(self, routes_dict):
         # MODIFICADO: Quitamos el "if self.turn == True:" porque si el juego llama
@@ -83,15 +72,35 @@ class Enemy:
             return available_paths
         return []
 
-    # MODIFICADO: Limpieza de parámetros obsoletos. 
-    # Igual que en atacar(), se elimina el Combat_manager de aquí.
-    def take_turn(self, master_path_table, master_distance_table, target_node):
+
+    def take_turn(self, master_path_table, master_distance_table, target_node, graph):
+        # Verificamos que existan datos de ruta desde donde estamos hasta el objetivo
         if self.current_node in master_path_table and target_node in master_path_table[self.current_node]:
             path = master_path_table[self.current_node][target_node]
-            distance_to_path = master_distance_table[self.current_node][target_node]
-
-            self.max_mobility -= distance_to_path
             
             print(f"\n-Movimiento enemigo {self.nombre}-")
-            print(f"objetivo: {target_node} | camino: {path}")
-            self.current_mobility = self.max_mobility
+            print(f"Objetivo final: {target_node} | Ruta ideal: {' -> '.join(path)}")
+
+            # path[0] es el nodo en el que ya estamos, así que empezamos a iterar desde path[1]
+            if len(path) > 1:
+                ruta_a_seguir = path[1:]
+            else:
+                print(f"{self.nombre} ya está junto al objetivo.")
+                return
+
+            # Nos movemos nodo a nodo a lo largo del camino trazado por Dijkstra
+            for paso_str in ruta_a_seguir:
+                paso = int(paso_str) # Convertimos el string de Dijkstra a entero
+                
+                # Obtenemos cuánto cuesta moverse de nuestro nodo actual al siguiente paso
+                # Usamos el grafo original (o tabla de distancias directas) para ver el coste de ese salto
+                costo_paso = graph[self.current_node][paso]
+
+                # Verificamos si tenemos movilidad suficiente para dar este salto
+                if self.current_mobility >= costo_paso:
+                    self.current_mobility -= costo_paso
+                    self.current_node = paso # ACTUALIZAMOS POSICIÓN
+                    print(f" {self.nombre} avanza al nodo {paso}. (Movilidad restante: {self.current_mobility})")
+                else:
+                    print(f" {self.nombre} agotó su movilidad. Se detiene en el nodo {self.current_node}.")
+                    break # Rompemos el bucle porque ya no puede moverse más este turno
