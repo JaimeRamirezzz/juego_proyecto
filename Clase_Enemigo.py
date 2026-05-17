@@ -67,6 +67,59 @@ class Enemy:
         
         return accion_elegida
 
+    def ejecutar_turno_ia(self, objetivos_validos, master_path_table, graph):
+        # NUEVO: Este es el método MAESTRO que llamará tu clase Enfrentamiento.
+        
+        self.en_defensa = False # Reseteamos la defensa al inicio de su turno
+        self.current_mobility = self.max_mobility # Reseteamos movilidad
+        
+        accion = self.decidir_accion()
+        
+        if accion == "Ataque":
+            if objetivos_validos:
+                # Ataca al más débil (puedes cambiar esta lógica luego Jaime)
+                objetivo = min(objetivos_validos, key=lambda x: x.hp_actual)
+                daño = self.calculate_damage()
+                
+                # Faltaría la lógica de Moverse hacia él antes de atacar usando take_turn()
+                print(f"⚔️ {self.nombre} se lanza al ataque contra {objetivo.nombre}.")
+                objetivo.recibir_daño(daño)
+            else:
+                print(f"❓ {self.nombre} quiere atacar pero no hay objetivos. Se defiende en su lugar.")
+                self.defender()
+                
+        elif accion == "Defensa":
+            self.defender()
+            
+        elif accion == "Huida":
+            self.huir(master_path_table, graph)
+
+
+
+    
+#para crear nuevas acciones sketch
+    def defender(self):
+        # NUEVO: Activa la bandera de defensa y termina su turno
+        self.en_defensa = True
+        print(f" ¡{self.nombre} adopta una postura defensiva! Recibirá menos daño el próximo turno.")
+
+    def huir(self, master_path_table, graph):
+        # NUEVO: Lógica básica de huida. Busca alejarse a un nodo aleatorio o "seguro".
+        print(f"💨 ¡{self.nombre} entra en pánico e intenta huir!")
+        
+        # Como no tenemos las coordenadas del jugador aquí, una huida simple es 
+        # elegir un nodo al azar al que pueda llegar con su movilidad actual.
+        if self.current_node in master_path_table:
+            nodos_alcanzables = list(master_path_table[self.current_node].keys())
+            if nodos_alcanzables:
+                # Elige un nodo al azar para escapar
+                nodo_escape = r.choice(nodos_alcanzables)
+                self.take_turn(master_path_table, master_path_table, nodo_escape, graph)
+            else:
+                print(f" {self.nombre} está acorralado y no puede huir.")
+
+    
+
     
     def velocidad(self):
         return self._velocidad
@@ -94,12 +147,16 @@ class Enemy:
 
     # MODIFICADO: Se llama recibir_daño y usa hp_actual
     def recibir_daño(self, amount):
-        self.hp_actual -= amount
-        if self.hp_actual < 0:
-            self.hp_actual = 0
-        print(f"🩸 {self.nombre} recibió {amount} de daño! Vida restante: {self.hp_actual}/{self.hp_max}")
-    
+        # MODIFICADO: Ahora comprueba si el enemigo se está defendiendo
+        daño_final = amount
+        if self.en_defensa:
+            daño_final = int(amount * 0.5) # Reduce el daño a la mitad
+            print(f" ¡Bloqueo! {self.nombre} mitigó parte del daño.")
 
+        self.hp_actual -= daño_final
+        if self.hp_actual < 0: self.hp_actual = 0
+        print(f" {self.nombre} recibió {daño_final} de daño! Vida restante: {self.hp_actual}/{self.hp_max}")
+    
     def evaluate_routes(self, routes_dict):
         # MODIFICADO: Quitamos el "if self.turn == True:" porque si el juego llama
         # a esta función durante su turno en el bucle, ya damos por hecho que es su turno.
