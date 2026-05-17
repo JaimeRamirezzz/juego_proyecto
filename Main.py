@@ -189,59 +189,6 @@ class Enfrentamiento:
         self.panel_ui.dibujar(window, self._jugadas, self.entidad_actual)
 
 
-#Bucle de enfrentamientos
-
-def bucle_de_combate(Enfrentamiento):#Se usará el de arriba, este se creó por falta de comunicacion
-      Enfrentamiento.activo = True
-      print("¡Comienza el combate!")
-
-    
-
-      while Enfrentamiento.activo:
-      
-          personaje_actual = Enfrentamiento.entidad_actual
-
-          # 1. ¿Qué pasa si el personaje en turno murió por daño de veneno 
-          #    o un ataque previo en esta misma ronda? Lo saltamos.
-          if not personaje_actual.esta_vivo():
-              Enfrentamiento.paso_de_turno()
-              continue
-        
-          print(f"\n--- Turno de {personaje_actual.nombre} ---")
-
-          # 2. TURNO DEL JUGADOR
-          if personaje_actual.equipo == "jugador":
-              # Aquí el juego se queda esperando a que el usuario decida.
-              # Digamos que tienes una función que muestra el menú y devuelve el objetivo.
-              objetivo = mostrar_menu_y_elegir_objetivo(Enfrentamiento.enemigos)
-            
-              # El jugador realiza el ataque (esta función le resta vida al objetivo)
-              personaje_actual.atacar(objetivo)
-            
-              # ¡IMPORTANTE! Cuando el ataque termina, le avisamos al árbitro.
-              # No necesitas actualizar listas de muertos aquí, el paso_de_ronda lo hará luego.
-              Enfrentamiento.paso_de_turno()
-
-         # 3. TURNO DEL ENEMIGO
-          elif personaje_actual.equipo == "enemigo":
-              # La IA del enemigo decide a quién atacar automáticamente.
-              # Por ejemplo, una función que elige a un aliado al azar.
-              objetivo = personaje_actual.ia_decidir_objetivo(Enfrentamiento.aliados)
-            
-              print(f"{personaje_actual.nombre} ataca a {objetivo.nombre}!")
-              personaje_actual.atacar(objetivo)
-            
-              # El enemigo termina, avisa al árbitro.
-              Enfrentamiento.paso_de_turno()
-
-          # 4. Comprobar si alguien ganó
-          # Esto asume que tienes un método en la clase que devuelve un ganador o None
-          ganador = Enfrentamiento._verificar_fin_combate() 
-          if ganador:
-              Enfrentamiento.activo = False
-              print(f"¡El combate ha terminado! Ganador: {ganador}")
-
-
 
 
 
