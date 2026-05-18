@@ -73,8 +73,7 @@ class Enemy:
         self.max_health = health
         self.max_mobility = mobility
         self.current_mobility = mobility
-        self.color = () #colocar color
-        self.base_damage = 10 # nerf importante
+        self.color = (255, 50, 50) # Color rojo para los enemigos           self.base_damage = 10 # nerf importante
         self.turn = False
         self.velocidad = velocidad
         self.equipo = equipo
