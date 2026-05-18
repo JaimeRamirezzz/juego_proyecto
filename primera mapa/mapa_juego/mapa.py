@@ -303,6 +303,7 @@ class MapaProcedural:
     IMAGENES_BIOMA = {
         TipoBioma.AGUA_PROFUNDA: "imagen/agua(2).png",
         TipoBioma.PRADERA: "imagen/hierba(1).png",
+        TipoBioma.BOSQUE: "imagen/madera(3).png",  
         TipoBioma.LAVA: "imagen/lava(4).png",
         TipoBioma.PANTANO: "imagen/tierra(0).png"
     }
