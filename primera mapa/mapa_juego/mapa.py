@@ -558,22 +558,45 @@ class MapaProcedural:
      self.grid_costos[fila, col] = casilla.costo_movimiento
      self.grid_caminable[fila, col] = not casilla.obstaculo
 
+
+
 if __name__ == "__main__":
     pygame.init()
-    pygame.display.set_caption("Mapa Procedural")
+    pygame.display.set_caption("Mapa Procedural - Juego y Panel")
 
     ANCHO_CASILLAS = 16  
-    ALTO_CASILLAS = 11   
-    TAMANO_CASILLA = 62 
-    
-    pantalla = pygame.display.set_mode((ANCHO_CASILLAS * TAMANO_CASILLA, ALTO_CASILLAS * TAMANO_CASILLA))
+    ALTO_CASILLAS_MAPA = 8   
+    TAMANO_CASILLA = 62  
 
-    config = Configuracionmapa(semilla=12345) 
+   
+    ALTO_MAPA_PIXELES = ALTO_CASILLAS_MAPA * TAMANO_CASILLA 
+    ALTO_PANEL_PIXELES = ALTO_MAPA_PIXELES // 2             
+    
+    ANCHO_VENTANA = ANCHO_CASILLAS * TAMANO_CASILLA
+    ALTO_VENTANA = ALTO_MAPA_PIXELES + ALTO_PANEL_PIXELES   
+
+    
+    pantalla = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA))
+
+    import random
+
+    tematicas = [
+        Configuracionmapa(), # Normal
+        Configuracionmapa(nivel_agua_profunda=0.2, nivel_montaña=0.9), # Agua
+        Configuracionmapa(nivel_agua_profunda=-1.0, nivel_montaña=-0.5, nivel_lava_temp=-1.0), # Lava
+        Configuracionmapa(nivel_agua_profunda=-1.0, nivel_pradera=-1.0, nivel_montaña=1.0) # Madera
+    ]
+    
+    nivel_actual = 0 
+    
+    config_inicial = tematicas[nivel_actual]
+    config_inicial.semilla = random.randint(0, 100000)
+
     mapa_del_juego = MapaProcedural(
         ancho=ANCHO_CASILLAS, 
-        alto=ALTO_CASILLAS, 
+        alto=ALTO_CASILLAS_MAPA, 
         tamaño_casilla=TAMANO_CASILLA, 
-        config=config,
+        config=config_inicial,
         carpeta_sprites="primera mapa/imagen" 
     )
 
@@ -587,24 +610,32 @@ if __name__ == "__main__":
                 
             if evento.type == pygame.KEYDOWN:
                 if evento.key == pygame.K_SPACE:
-                    print("Generando un nuevo mapa...")
+                    nivel_actual += 1
+                    if nivel_actual >= len(tematicas):
+                        nivel_actual = 0 
+                        
+                    print(f"Cambiando al nivel {nivel_actual}...")
+                    
+                    nueva_config = tematicas[nivel_actual]
+                    nueva_config.semilla = random.randint(0, 100000) 
+
                     mapa_del_juego = MapaProcedural(
                         ancho=ANCHO_CASILLAS, 
-                        alto=ALTO_CASILLAS, 
+                        alto=ALTO_CASILLAS_MAPA, 
                         tamaño_casilla=TAMANO_CASILLA, 
-                        config=Configuracionmapa(), # Semilla aleatoria
+                        config=nueva_config,
                         carpeta_sprites="primera mapa/imagen"
                     )
 
-        
-        pantalla.fill((0, 0, 0))        
+        pantalla.fill((0, 0, 0)) 
         
         mapa_del_juego.dibujar(pantalla)
 
-       
+        rect_panel = pygame.Rect(0, ALTO_MAPA_PIXELES, ANCHO_VENTANA, ALTO_PANEL_PIXELES)
+        pygame.draw.rect(pantalla, (40, 40, 40), rect_panel) 
+        pygame.draw.rect(pantalla, (150, 150, 150), rect_panel, 4) 
+
         pygame.display.flip()
-        
-    
         reloj.tick(60)
 
     pygame.quit()
