@@ -67,7 +67,7 @@ class Configuracionmapa:
 # que tipo de enemigo queremos que se genere dependiendo del bioma y meter la class enemigo aqui
 class Enemy:
     _id_counter = 10000 # para dar prioridad a los personajes jugables
-    def __init__(self, start_node, health, mobility, velocidad, level=1, equipo="enemigo"):
+    def __init__(self, start_node, health, mobility, velocidad, level=1, equipo="enemigo", nombre="Enemigo"):
         self.current_node = start_node
         self.health = health
         self.max_health = health
@@ -78,6 +78,7 @@ class Enemy:
         self.turn = False
         self.velocidad = velocidad
         self.equipo = equipo
+        self.name = nombre
         self._vivo = True
         self.id = Enemy._id_counter
         Enemy._id_counter +=1
@@ -219,7 +220,8 @@ class GeneradorMapaProcedural:
         self.grid_altura = []
         self.grid_temperatura = []
         self.grid_humedad = []
-        self._generar_ruido = opensimplex.OpenSimplex(seed =self.config.semilla)
+        opensimplex.seed(self.config.semilla)
+        self._generar_ruido = opensimplex.noise3
     def generar_mapa(self, ancho:int, alto:int):
         self.ancho = ancho
         self.alto = alto
@@ -307,6 +309,7 @@ class MapaProcedural:
     }
 
     PROPIEDADES_BIOMA = {
+        TipoBioma.AGUA_PROFUNDA: {'caminable': False, 'costo': 5.0},
         TipoBioma.PRADERA: {'caminable': True, 'costo': 1.0},
         TipoBioma.BOSQUE: {'caminable': True, 'costo': 1.5, 'cobertura': 20},
         TipoBioma.MONTAÑA: {'caminable': False, 'costo': 2.9},
@@ -356,9 +359,8 @@ class MapaProcedural:
                 continue
             
             try:
-                imagen = pygame.image.load(ruta_final).convert_alpha()
-                # Escalar al tamaño de casilla
-                imagen_escalada = pygame.transform.scale(imagen, (self.tamaño_casilla, self.tamaño_casilla))
+                img_temp = pygame.image.load(ruta_final).convert_alpha()
+                imagen_escalada = pygame.transform.scale(img_temp, (self.tamaño_casilla, self.tamaño_casilla))
                 self.imagenes_bioma[bioma] = imagen_escalada
                 print(f"✅ Cargada imagen para {bioma.name}: {ruta_final}")
             except pygame.error as e:
@@ -572,7 +574,7 @@ if __name__ == "__main__":
         alto=ALTO_CASILLAS, 
         tamaño_casilla=TAMANO_CASILLA, 
         config=config,
-        carpeta_sprites="imagen" 
+        carpeta_sprites="primera mapa/imagen" 
     )
 
     ejecutando = True
@@ -591,7 +593,7 @@ if __name__ == "__main__":
                         alto=ALTO_CASILLAS, 
                         tamaño_casilla=TAMANO_CASILLA, 
                         config=Configuracionmapa(), # Semilla aleatoria
-                        carpeta_sprites="imagen"
+                        carpeta_sprites="primera mapa/imagen"
                     )
 
         
