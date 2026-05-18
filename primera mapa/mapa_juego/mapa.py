@@ -5,10 +5,10 @@ import opensimplex
 from typing import Optional, List, Tuple, Dict
 from dataclasses import dataclass
 import os
-#from panel_ataques import PanelAtaques
-#from Combat_manager import Combat_Manager
+from panel_ataques import PanelAtaques
+from Combat_manager import Combat_Manager
 import numpy as np
-#from alg import dijkstra
+from alg import dijkstra
 ANCHO_PANTALLA = 120
 ALTO_PANTALLA = 90
 ALTO_PANEL = 20
@@ -636,6 +636,38 @@ if __name__ == "__main__":
         pygame.draw.rect(pantalla, (150, 150, 150), rect_panel, 4) 
 
         pygame.display.flip()
+        reloj.tick(60)
+
+    pygame.quit()
+    if __name__ == "__main__":
+     pygame.init()
+    
+    pantalla = pygame.display.set_mode((1000, 700))
+    pygame.display.set_caption("Mapa Procedural Generata")
+    color_fondo = (30, 150, 50)
+    
+  
+    mi_mapa = MapaProcedural(ancho=14, alto=7, tamaño_casilla=62, carpeta_sprites="imagen")
+    
+    ejecutando = True
+    reloj = pygame.time.Clock()
+
+    while ejecutando:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                ejecutando = False
+            
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE:
+                    print("Genera un nuovo mapa casual...")
+                    mi_mapa = MapaProcedural(ancho=25, alto=18, tamaño_casilla=32, carpeta_sprites="imagen")
+
+        pantalla.fill(color_fondo) 
+        
+        mi_mapa.dibujar(pantalla)
+
+        pygame.display.flip()
+        
         reloj.tick(60)
 
     pygame.quit()
