@@ -21,7 +21,9 @@ class Personaje:
         
         self.aguante = 10
         self.capacidad_aguante = self.aguante
-
+         # posición para el mapa
+        self.current_node = (0, 0)
+        self.color = (100, 200, 255)  # AZUL CLARO
         self.ataques = ataques if ataques is not None else []
         self.vivo = True
 

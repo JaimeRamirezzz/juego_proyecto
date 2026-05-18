@@ -1,7 +1,7 @@
 import pygame
-
+from config import ANCHO_PANTALLA, ALTO_PANTALLA, ALTO_PANEL, ALTO_MAPA
 class PanelAtaques:
-    def __init__(self, x, y, ancho, alto):
+    def __init__(self, x= 0, y=ALTO_MAPA, ancho=ANCHO_PANTALLA, alto =ALTO_PANEL):
         self.rect = pygame.Rect(x, y, ancho, alto)
         
         # Inizializzazione dei font
