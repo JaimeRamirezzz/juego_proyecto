@@ -11,12 +11,12 @@ from personajes.arquero import Arquero
 from personajes.creacion_personaje_ui import PantallaCreacionPersonajes
 from personajes.subida_nivel_ui import PantallaRecompensa
 
-altura_ventana = 700
-anchura_ventana = 1000
+ANCHO_PANTALLA = 1000
+ALTO_PANTALLA = 700
 
 pg.init()
 pg.key.set_repeat(0)
-window = pg.display.set_mode((anchura_ventana, altura_ventana))
+window = pg.display.set_mode((ANCHO_PANTALLA, ALTO_PANTALLA))
 pg.display.set_caption("RPG Táctico - Demo")
 estado_partida = 0  # Iniciar en pantalla de inicio
 
