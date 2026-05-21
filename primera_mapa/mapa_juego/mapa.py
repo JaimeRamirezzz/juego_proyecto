@@ -9,10 +9,8 @@ from panel_ataques import PanelAtaques
 from Combat_manager import Combat_Manager
 import numpy as np
 from alg import dijkstra
-ANCHO_PANTALLA = 120
-ALTO_PANTALLA = 90
-ALTO_PANEL = 20
-ALTO_MAPA = ALTO_PANTALLA - ALTO_PANEL - 20
+from config import ANCHO_PANTALLA, ALTO_PANTALLA, ALTO_PANEL, ALTO_MAPA
+
 # Clase para definir las propiedades de cada tipo de suelo/terreno de manera aleatoria
 class TipoBioma(Enum):
     AGUA_PROFUNDA = auto()
