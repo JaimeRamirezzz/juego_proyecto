@@ -1,14 +1,9 @@
 import numpy as np
-
+from primera_mapa.mapa_juego.mapa import MapaProcedural
 na = np.nan
 inf = np.inf
 
-lista = [[0, 7, 9, 5, inf, 14],
-         [7, 0, 10, 15, inf, inf],
-         [9, 10, 0, 11, inf, 2],
-         [inf, 15, 11, 0, 6, inf],
-         [inf, inf, inf, 6, 0, 9],
-         [14, inf, 2, inf, 9, 0]]
+lista = [MapaProcedural.generar_matriz_adyacencia]
 
 graph = np.array(lista)
 
