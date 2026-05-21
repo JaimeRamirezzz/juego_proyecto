@@ -5,7 +5,10 @@ import opensimplex
 from typing import Optional, List, Tuple, Dict
 from dataclasses import dataclass
 import os
-
+from panel_ataques import PanelAtaques
+from Combat_manager import Combat_Manager
+import numpy as np
+from alg import dijkstra
 ANCHO_PANTALLA = 120
 ALTO_PANTALLA = 90
 ALTO_PANEL = 20
@@ -64,17 +67,17 @@ class Configuracionmapa:
 # que tipo de enemigo queremos que se genere dependiendo del bioma y meter la class enemigo aqui
 class Enemy:
     _id_counter = 10000 # para dar prioridad a los personajes jugables
-    def __init__(self, start_node, health, mobility, velocidad, level=1, equipo="enemigo"):
+    def __init__(self, start_node, health, mobility, velocidad, level=1, equipo="enemigo", nombre="Enemigo"):
         self.current_node = start_node
         self.health = health
         self.max_health = health
         self.max_mobility = mobility
         self.current_mobility = mobility
-        self.color = () #colocar color
-        self.base_damage = 10 # nerf importante
+        self.color = (255, 50, 50) # Color rojo para los enemigos           self.base_damage = 10 # nerf importante
         self.turn = False
         self.velocidad = velocidad
         self.equipo = equipo
+        self.name = nombre
         self._vivo = True
         self.id = Enemy._id_counter
         Enemy._id_counter +=1
@@ -108,7 +111,7 @@ class Enemy:
             actual_damage = self.calculate_damage()
             target.health -= actual_damage
             print(f"Daño del {self.name} {actual_damage}")
-            Combat_manager.next_turn()
+            Combat_Manager.next_turn()
         else:
             pass
 
@@ -154,8 +157,8 @@ class Enemy:
  
 
                 print(f"\n-Turno enemigo-")
-                print(f"objetivo: {target_node} | camino: {path}")
-                Combat_manager.next_turn()
+                print(f"objetivo: {target_node} | camino: {path_table}")
+                Combat_Manager.next_turn()
                 self.current_mobility = self.max_mobility 
 
 
@@ -216,7 +219,8 @@ class GeneradorMapaProcedural:
         self.grid_altura = []
         self.grid_temperatura = []
         self.grid_humedad = []
-        self._generar_ruido = opensimplex.OpenSimplex(seed =self.config.semilla)
+        opensimplex.seed(self.config.semilla)
+        self._generar_ruido = opensimplex.noise3
     def generar_mapa(self, ancho:int, alto:int):
         self.ancho = ancho
         self.alto = alto
@@ -299,11 +303,13 @@ class MapaProcedural:
     IMAGENES_BIOMA = {
         TipoBioma.AGUA_PROFUNDA: "imagen/agua(2).png",
         TipoBioma.PRADERA: "imagen/hierba(1).png",
+        TipoBioma.BOSQUE: "imagen/madera(3).png",  
         TipoBioma.LAVA: "imagen/lava(4).png",
         TipoBioma.PANTANO: "imagen/tierra(0).png"
     }
 
     PROPIEDADES_BIOMA = {
+        TipoBioma.AGUA_PROFUNDA: {'caminable': False, 'costo': 5.0},
         TipoBioma.PRADERA: {'caminable': True, 'costo': 1.0},
         TipoBioma.BOSQUE: {'caminable': True, 'costo': 1.5, 'cobertura': 20},
         TipoBioma.MONTAÑA: {'caminable': False, 'costo': 2.9},
@@ -312,10 +318,11 @@ class MapaProcedural:
         TipoBioma.PANTANO: {'caminable': True, 'costo': 3.0},
     }
     def __init__(self, ancho: int, alto: int, tamaño_casilla: int = 40, 
-                 config: Configuracionmapa = None, carpeta_sprites: str = "imagen"):
+                 config: Configuracionmapa = None, carpeta_sprites: str = "imagen", offset_y: int = 0):
         self.ancho = ancho
         self.alto = alto
         self.tamaño_casilla = tamaño_casilla
+        self.offset_y = offset_y
         
         # Generar mapa procedural
         self.generador = GeneradorMapaProcedural(config)
@@ -352,9 +359,8 @@ class MapaProcedural:
                 continue
             
             try:
-                imagen = pygame.image.load(ruta_final).convert_alpha()
-                # Escalar al tamaño de casilla
-                imagen_escalada = pygame.transform.scale(imagen, (self.tamaño_casilla, self.tamaño_casilla))
+                img_temp = pygame.image.load(ruta_final).convert_alpha()
+                imagen_escalada = pygame.transform.scale(img_temp, (self.tamaño_casilla, self.tamaño_casilla))
                 self.imagenes_bioma[bioma] = imagen_escalada
                 print(f"✅ Cargada imagen para {bioma.name}: {ruta_final}")
             except pygame.error as e:
@@ -362,11 +368,14 @@ class MapaProcedural:
                 self.imagenes_bioma[bioma] = None
 
     def _crear_casillas(self):
+        self.grid_costos = np.zeros((self.alto, self.ancho))
+        self.grid_caminable = np.zeros((self.alto, self.ancho), dtype=bool)
+        
         for y in range(self.alto):
             fila = []
             for x in range(self.ancho):
                 px = x * self.tamaño_casilla
-                py = y * self.tamaño_casilla
+                py = y * self.tamaño_casilla + self.offset_y
                 bioma = self.biomas[y][x]
                 props = self.PROPIEDADES_BIOMA[bioma]
                 
@@ -381,6 +390,11 @@ class MapaProcedural:
                 casilla.costo_movimiento = props['costo']
                 casilla.cobertura = props.get('cobertura', 0)
                 fila.append(casilla)
+                
+                # ← AÑADIR estas 2 líneas al final del for x
+                self.grid_costos[y, x] = casilla.costo_movimiento
+                self.grid_caminable[y, x] = not casilla.obstaculo
+            
             self.casillas.append(fila)
 
     def _generar_enemigos(self, densidad: float = 0.05):
@@ -421,41 +435,239 @@ class MapaProcedural:
             start_node=(x, y),
             health=stats["vida"],
             mobility=10,
-            level=1
+            velocidad=stats.get("velocidad", 10),
+            level=1,
+            equipo="enemigo",
+            nombre=stats.get("nombre", "Enemigo")
         )
-import numpy as np
 
-na = np.nan
-# self.casillas = [] poner la en la variable en np.array, y colocarlo
-graph = np.array([[0, 7, 9, 5, na, 14],
-                  [7, 0, 10, 15, na, na],
-                  [9, 10, 0, 11, na, 2],
-                  [na, 15, 11, 0, 6, na],
-                  [na, na, na, 6, 0, 9],
-                  [14, na, 2, na, 9, 0]])
-
-def dijkstra(graph, start):
-    distances = np.fromiter((0 if i == start else np.inf for i in range(len(graph))), dtype='float')
-    visited = np.full_like(graph[start], 0, dtype='bool')
-   # Esto crea una lista ÚNICA e independiente para cada nodo
-    paths = {nodo: [str(start)] for nodo in range(len(graph))}
-
-
-    for _ in range(len(graph)):
-        min_distance_node = np.where(distances == distances[~visited].min())[0][0]
+    def colocar_jugador(self, jugador):
+        """
+        Busca la primera casilla vacía y caminable, coloca al jugador.
         
-        for node in range(len(graph)):
-            if not graph[min_distance_node, node] > 0:
-                continue
-            distance_to_node = distances[min_distance_node] + graph[min_distance_node, node]
-            if distance_to_node < distances[node] and visited[node] == False:
-                distances[node] = distance_to_node
-                paths[node] = paths[min_distance_node].copy()
-                paths[node].append(str(node))
+        jugador: instancia de Jugador
+        Retorna: True si se colocó, False si no hay espacio
+        """
+        for fila in self.casillas:
+            for casilla in fila:
+                # Casilla vacía, caminable, sin obstáculo, sin entidad
+                if (not casilla.obstaculo and 
+                    not casilla.esta_ocupada() and
+                    self.PROPIEDADES_BIOMA.get(casilla.bioma, {}).get('caminable', True)):
+                    
+                    casilla.colocar_entidad(jugador)
+                    casilla.tipo = Tipo_casilla.PERSONAJE_JUGADOR
+                    jugador.current_node = (casilla.fila, casilla.col)
+                    return True
 
-        visited[min_distance_node] = True
+        return False
+    def dibujar(self, pantalla):
+    # dibuja el mapa completo: biomas, imágenes, entidades...
+     for fila in self.casillas:
+        for casilla in fila:
+            rect = pygame.Rect(casilla.x, casilla.y, casilla.tamaño, casilla.tamaño)
+            
+            # Dibujar bioma (imagen o color sólido)
+            if (casilla.bioma in self.imagenes_bioma and 
+                self.imagenes_bioma[casilla.bioma] is not None):
+                
+                pantalla.blit(self.imagenes_bioma[casilla.bioma], (casilla.x, casilla.y))
+            else:
+                # Color de respaldo según bioma
+                color = self.COLORES_BIOMA.get(casilla.bioma, (200, 200, 200))
+                pygame.draw.rect(pantalla, color, rect)
+            
+            # Borde sutil para distinguir casillas
+            pygame.draw.rect(pantalla, (100, 100, 100), rect, 1)
+            
+            # Dibujar entidad si hay
+            if casilla.entidad:
+                self._dibujar_entidad(pantalla, casilla)
+    def _dibujar_entidad(self, pantalla, casilla):
+    #Dibuja un círculo (jugador) o cuadrado (enemigo) en la casilla.
+     centro_x = casilla.x + casilla.tamaño // 2
+     centro_y = casilla.y + casilla.tamaño // 2
+     radio = casilla.tamaño // 3
+        
+     entidad = casilla.entidad
+        
+     if getattr(entidad, 'equipo', None) == 'jugador':
+            color = getattr(entidad, 'color', (100, 200, 255))
+            pygame.draw.circle(pantalla, color, (centro_x, centro_y), radio)
+            pygame.draw.circle(pantalla, (255, 255, 255), (centro_x, centro_y), radio, 2)
+     else:
+            color = getattr(entidad, 'color', (255, 50, 50))
+            rect_entidad = pygame.Rect(
+                centro_x - radio, 
+                centro_y - radio, 
+                radio * 2, 
+                radio * 2
+            )
+            pygame.draw.rect(pantalla, color, rect_entidad)
+            pygame.draw.rect(pantalla, (50, 0, 0), rect_entidad, 2)
+        
+    def encontrar_camino(self, origen, destino):
+        """
+        Encuentra el camino mas corto entre dos casillas.
+        origen: tupla (fila, col) - posición de inicio
+        destino: tupla (fila, col) - posición objetivo
+        
+        retorna: (distancia_total, lista_de_nodos_como_tuplas)
+        """
+        return dijkstra(
+            self.grid_costos,
+            self.grid_caminable,
+            origen,
+            destino
+        )
+    def get_rutas_disponibles(self, nodo_actual, max_distancia):
+        """
+        Para IA de enemigos: todas las casillas alcanzables dentro de distancia.
 
-    for node, path in paths.items():
-        print(f'The shortest path from node {start} to node {node} is:\n{' -> '.join(path)}\nTotal distance: {distances[node]}', end='\n\n')
+        nodo_actual: (fila, col)
+        max_distancia: movilidad del personaje
 
-    return paths
+        Retorna: dict {(fila,col): distancia, ...}
+        """
+        alto, ancho = self.grid_costos.shape
+        rutas = {}
+
+        for y in range(alto):
+            for x in range(ancho):
+                if (y, x) == nodo_actual:
+                    continue
+                if not self.grid_caminable[y, x]:
+                    continue
+
+                dist, camino = dijkstra(
+                    self.grid_costos,
+                    self.grid_caminable,
+                    nodo_actual,
+                    (y, x)
+                )
+
+                if dist <= max_distancia and camino:
+                    rutas[(y, x)] = dist
+
+        return rutas
+    def actualizar_grid(self, fila, col):
+    #actualiza los grids numpy cuando una casilla cambia.
+    #Llama esto después de mover/colocar/quitar entidades.
+    
+     casilla = self.casillas[fila][col]
+     self.grid_costos[fila, col] = casilla.costo_movimiento
+     self.grid_caminable[fila, col] = not casilla.obstaculo
+
+
+
+if __name__ == "__main__":
+    pygame.init()
+    pygame.display.set_caption("Mapa Procedural - Juego y Panel")
+
+    ANCHO_CASILLAS = 16  
+    ALTO_CASILLAS_MAPA = 8   
+    TAMANO_CASILLA = 62  
+
+   
+    ALTO_MAPA_PIXELES = ALTO_CASILLAS_MAPA * TAMANO_CASILLA 
+    ALTO_PANEL_PIXELES = ALTO_MAPA_PIXELES // 2             
+    
+    ANCHO_VENTANA = ANCHO_CASILLAS * TAMANO_CASILLA
+    ALTO_VENTANA = ALTO_MAPA_PIXELES + ALTO_PANEL_PIXELES   
+
+    
+    pantalla = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA))
+
+    import random
+
+    tematicas = [
+        Configuracionmapa(), # Normal
+        Configuracionmapa(nivel_agua_profunda=0.2, nivel_montaña=0.9), # Agua
+        Configuracionmapa(nivel_agua_profunda=-1.0, nivel_montaña=-0.5, nivel_lava_temp=-1.0), # Lava
+        Configuracionmapa(nivel_agua_profunda=-1.0, nivel_pradera=-1.0, nivel_montaña=1.0) # Madera
+    ]
+    
+    nivel_actual = 0 
+    
+    config_inicial = tematicas[nivel_actual]
+    config_inicial.semilla = random.randint(0, 100000)
+
+    mapa_del_juego = MapaProcedural(
+        ancho=ANCHO_CASILLAS, 
+        alto=ALTO_CASILLAS_MAPA, 
+        tamaño_casilla=TAMANO_CASILLA, 
+        config=config_inicial,
+        carpeta_sprites="primera mapa/imagen" 
+    )
+
+    ejecutando = True
+    reloj = pygame.time.Clock()
+
+    while ejecutando:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                ejecutando = False
+                
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE:
+                    nivel_actual += 1
+                    if nivel_actual >= len(tematicas):
+                        nivel_actual = 0 
+                        
+                    print(f"Cambiando al nivel {nivel_actual}...")
+                    
+                    nueva_config = tematicas[nivel_actual]
+                    nueva_config.semilla = random.randint(0, 100000) 
+
+                    mapa_del_juego = MapaProcedural(
+                        ancho=ANCHO_CASILLAS, 
+                        alto=ALTO_CASILLAS_MAPA, 
+                        tamaño_casilla=TAMANO_CASILLA, 
+                        config=nueva_config,
+                        carpeta_sprites="primera mapa/imagen"
+                    )
+
+        pantalla.fill((0, 0, 0)) 
+        
+        mapa_del_juego.dibujar(pantalla)
+
+        rect_panel = pygame.Rect(0, ALTO_MAPA_PIXELES, ANCHO_VENTANA, ALTO_PANEL_PIXELES)
+        pygame.draw.rect(pantalla, (40, 40, 40), rect_panel) 
+        pygame.draw.rect(pantalla, (150, 150, 150), rect_panel, 4) 
+
+        pygame.display.flip()
+        reloj.tick(60)
+
+    pygame.quit()
+    if __name__ == "__main__":
+     pygame.init()
+    
+    pantalla = pygame.display.set_mode((1000, 700))
+    pygame.display.set_caption("Mapa Procedural Generata")
+    color_fondo = (30, 150, 50)
+    
+  
+    mi_mapa = MapaProcedural(ancho=14, alto=7, tamaño_casilla=62, carpeta_sprites="imagen")
+    
+    ejecutando = True
+    reloj = pygame.time.Clock()
+
+    while ejecutando:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                ejecutando = False
+            
+            if evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_SPACE:
+                    print("Genera un nuovo mapa casual...")
+                    mi_mapa = MapaProcedural(ancho=25, alto=18, tamaño_casilla=32, carpeta_sprites="imagen")
+
+        pantalla.fill(color_fondo) 
+        
+        mi_mapa.dibujar(pantalla)
+
+        pygame.display.flip()
+        
+        reloj.tick(60)
+
+    pygame.quit()

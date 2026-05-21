@@ -10,13 +10,14 @@ from personajes.tanque import Tanque
 from personajes.arquero import Arquero
 from personajes.creacion_personaje_ui import PantallaCreacionPersonajes
 from personajes.subida_nivel_ui import PantallaRecompensa
+from primera_mapa.mapa_juego.mapa import MapaProcedural
 
-altura_ventana = 700
-anchura_ventana = 1000
+ANCHO_PANTALLA = 1000
+ALTO_PANTALLA = 700
 
 pg.init()
 pg.key.set_repeat(0)
-window = pg.display.set_mode((anchura_ventana, altura_ventana))
+window = pg.display.set_mode((ANCHO_PANTALLA, ALTO_PANTALLA))
 pg.display.set_caption("RPG Táctico - Demo")
 estado_partida = 0  # Iniciar en pantalla de inicio
 
@@ -76,11 +77,11 @@ class ColaEnlazada:
 from panel_ataques import PanelAtaques
 
 class Enfrentamiento:
-    def __init__(self, jugadores: list, mapa_tablero=None):
+    def __init__(self, jugadores: list):
         self._jugadas = 0
-        self.tablero = mapa_tablero
+        self.tablero = MapaProcedural()
         self.aliados = jugadores
-        self.enemigos = mapa_tablero.lista_enemigos()
+        self.enemigos = self.tablero.lista_enemigos()
         self.todas_entidades = []
         self._actualizar_lista_entidades()
         self.orden = ColaEnlazada()
@@ -153,24 +154,18 @@ class Enfrentamiento:
         if not self.usar_atb and self.orden.empty():
             return self.granTurno()
         return True
-        
-    def _verificar_fin_combate(self) -> bool: #Falta revisar, de momento no usar
+    
+    def _verificar_fin_combate(self) -> bool: #Se usa en el bucle while cada iteracion
         aliados_vivos = any(e.esta_vivo() for e in self.aliados)
         enemigos_vivos = any(e.esta_vivo() for e in self.enemigos)
         
         if not aliados_vivos:
-            self.ganador = "enemigos"
-            self.activo = False
-            print("¡Derrota! Todos los aliados han caído.")
-            return True
+            return True, 'derrota'
             
         if not enemigos_vivos:
-            self.ganador = "jugadores"
-            self.activo = False
-            print("¡Victoria! Todos los enemigos han sido derrotados.")
-            return True
+            return True, 'victoria'
             
-        return False
+        return False, False
         
     def obtener_objetivos_validos(self, atacante=None):#Falta el mapa y falta revisar, de momento no usar
         atacante = atacante or self.entidad_actual
@@ -189,59 +184,6 @@ class Enfrentamiento:
         self.panel_ui.dibujar(window, self._jugadas, self.entidad_actual)
 
 
-#Bucle de enfrentamientos
-
-def bucle_de_combate(Enfrentamiento):#Se usará el de arriba, este se creó por falta de comunicacion
-      Enfrentamiento.activo = True
-      print("¡Comienza el combate!")
-
-    
-
-      while Enfrentamiento.activo:
-      
-          personaje_actual = Enfrentamiento.entidad_actual
-
-          # 1. ¿Qué pasa si el personaje en turno murió por daño de veneno 
-          #    o un ataque previo en esta misma ronda? Lo saltamos.
-          if not personaje_actual.esta_vivo():
-              Enfrentamiento.paso_de_turno()
-              continue
-        
-          print(f"\n--- Turno de {personaje_actual.nombre} ---")
-
-          # 2. TURNO DEL JUGADOR
-          if personaje_actual.equipo == "jugador":
-              # Aquí el juego se queda esperando a que el usuario decida.
-              # Digamos que tienes una función que muestra el menú y devuelve el objetivo.
-              objetivo = mostrar_menu_y_elegir_objetivo(Enfrentamiento.enemigos)
-            
-              # El jugador realiza el ataque (esta función le resta vida al objetivo)
-              personaje_actual.atacar(objetivo)
-            
-              # ¡IMPORTANTE! Cuando el ataque termina, le avisamos al árbitro.
-              # No necesitas actualizar listas de muertos aquí, el paso_de_ronda lo hará luego.
-              Enfrentamiento.paso_de_turno()
-
-         # 3. TURNO DEL ENEMIGO
-          elif personaje_actual.equipo == "enemigo":
-              # La IA del enemigo decide a quién atacar automáticamente.
-              # Por ejemplo, una función que elige a un aliado al azar.
-              objetivo = personaje_actual.ia_decidir_objetivo(Enfrentamiento.aliados)
-            
-              print(f"{personaje_actual.nombre} ataca a {objetivo.nombre}!")
-              personaje_actual.atacar(objetivo)
-            
-              # El enemigo termina, avisa al árbitro.
-              Enfrentamiento.paso_de_turno()
-
-          # 4. Comprobar si alguien ganó
-          # Esto asume que tienes un método en la clase que devuelve un ganador o None
-          ganador = Enfrentamiento._verificar_fin_combate() 
-          if ganador:
-              Enfrentamiento.activo = False
-              print(f"¡El combate ha terminado! Ganador: {ganador}")
-
-
 
 
 
@@ -258,9 +200,9 @@ def pantalla_inicio():
     window.blit(font.render("Pulse espacio para pasar a la creacion de personaje", True, GB_COLORS["white"]), (200, 600))
 
 # Para mostrar la pantalla de creacion de personajes, esta hecha de forma temporal para ser modificada si la quieres cambiar hazlo, no tengas miedo
-def pantalla_creacion_de_personajes():
-    window.blit(font.render("Creación de personajes", True, GB_COLORS["white"]), (380, 200))
-    window.blit(font.render("Pulsa espacio para pasar a la batalla", True, GB_COLORS["white"]), (200, 600))
+def pantalla_derrota():
+    window.blit(font.render("Fuiste derrotado", True, GB_COLORS["white"]), (380, 200))
+    window.blit(font.render("No se admiten perdedores, cierra la ventana", True, GB_COLORS["white"]), (200, 600))
 
 from personajes.creacion_personaje_ui import PantallaCreacionPersonajes
 
@@ -343,6 +285,12 @@ while running:
         estado_partida = 3
         peleilla = Enfrentamiento()
     elif estado_partida == 3:
+        true_o_false, berificador = peleilla._verificar_fin_combate():
+        if true_o_false:
+            if berificador == 'victoria':
+                estado_partida=4
+            else:
+                estado_partida=9
         if not Enfrentamiento.activo:
             print("="*40)
             print("  ⚔️  COMBATE INICIADO  ⚔️")
@@ -432,7 +380,8 @@ while running:
             else:
                 resultado = font.render("DERROTA... Pulsa ESC para salir", True, GB_COLORS['red_bright'])
             window.blit(resultado, (50, y_offset))'''
-    
+    elif estado_partida == 9:
+        pantalla_derrota()
     pg.display.update()
     clock.tick(60)
 
