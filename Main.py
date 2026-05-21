@@ -285,7 +285,7 @@ while running:
         estado_partida = 3
         peleilla = Enfrentamiento()
     elif estado_partida == 3:
-        true_o_false, berificador = peleilla._verificar_fin_combate():
+        true_o_false, berificador = peleilla._verificar_fin_combate()
         if true_o_false:
             if berificador == 'victoria':
                 estado_partida=4
