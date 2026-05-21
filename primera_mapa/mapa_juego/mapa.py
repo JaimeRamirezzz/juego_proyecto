@@ -557,7 +557,46 @@ class MapaProcedural:
      casilla = self.casillas[fila][col]
      self.grid_costos[fila, col] = casilla.costo_movimiento
      self.grid_caminable[fila, col] = not casilla.obstaculo
+    def generar_matriz_adyacencia(self) -> np.ndarray:
+        """
+        Traduce el grid 2D del mapa actual a una matriz de adyacencia de nodos numéricos.
+        Las casillas no caminables o sin conexión directa se marcan como np.inf.
+        """
+        total_nodos = self.alto * self.ancho
+        
+        # 1. Crear matriz llena de infinitos e inicializar la diagonal en 0
+        matriz_adyacencia = np.full((total_nodos, total_nodos), np.inf)
+        np.fill_diagonal(matriz_adyacencia, 0)
+        
+        # Direcciones: Arriba, Abajo, Izquierda, Derecha
+        direcciones = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        
+        # Función interna para convertir (fila, columna) -> ID único indexado
+        def obtener_id(f, c):
+            return f * self.ancho + c
 
+        # 2. Recorrer el mapa para conectar los vecinos
+        for f in range(self.alto):
+            for c in range(self.ancho):
+                nodo_origen = obtener_id(f, c)
+                
+                # Si la casilla origen es un obstáculo, nadie transita por ella
+                if not self.grid_caminable[f, c]:
+                    continue
+                    
+                for df, dc in direcciones:
+                    nf, nc = f + df, c + dc
+                    
+                    # Validar límites del mapa
+                    if 0 <= nf < self.alto and 0 <= nc < self.ancho:
+                        # Si el vecino es caminable, registramos el costo de su bioma
+                        if self.grid_caminable[nf, nc]:
+                            nodo_destino = obtener_id(nf, nc)
+                            costo = self.grid_costos[nf, nc]
+                            
+                            matriz_adyacencia[nodo_origen, nodo_destino] = costo
+
+        return matriz_adyacencia
 
 
 if __name__ == "__main__":
