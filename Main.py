@@ -131,10 +131,16 @@ class Enfrentamiento:
         })
         
     def ataque_real(self, indice, destino):#lo de real es para diferenciarlo de todo ataque existente, y lo de destino es a donde termina, porque el origen ya lo tendremos que es el self.activo o algo asi, me da pereza vuscar como estaba llamada el personaje que le toca atacar
-        if self.entidad_actual.atacar(indice):
-            pass # aquí necesito el mapa para atacar
-        else:
-            pass
+        if type(self.entidad_actual) == Arquero:
+            if self.entidad_actual.atacar(indice):
+                self.tablero.casillas(destino).entidad.recivir_daño(self.entidad_actual.ataques[indice].potencia()*self.entidad_actual.ataque)
+            else:
+                pass
+        else:# por si da tiempo, para hacer que el resto de personajes solo ataquen a una distancia realista
+            if self.entidad_actual.atacar(indice):
+                self.tablero.casillas(destino).entidad.recibir_daño(self.entidad_actual.ataques[indice].potencia()*self.entidad_actual.ataque)
+            else:
+                pass
 
     def iniciar_combate(self, usar_atb=False):#Falta revisar, de momento no usar
         self.usar_atb = usar_atb

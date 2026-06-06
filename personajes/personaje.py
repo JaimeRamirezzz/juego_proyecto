@@ -47,8 +47,13 @@ class Personaje:
     def velocidad(self):
         return self.velocidad_base
 
+    def recibir_daño(self, cantidad):
+        self.hp_actual -= cantidad/self.defensa
+        if self.hp_actual <= 0:
+            self.vivo = False
+
     def esta_vivo(self):
-        return self.vivo and self.hp_actual > 0
+        return self.vivo or self.hp_actual > 0
 
     def añadir_ataque(self, ataque):
         self.ataques.append(ataque)
