@@ -299,6 +299,14 @@ class MapaProcedural:
                 self.grid_caminable[y, x] = not casilla.obstaculo
             
             self.casillas.append(fila)
+            self.matriz_adyacencia = self.generar_matriz_adyacencia()
+            self.master_path_table = {}
+            self.master_distance_table = {}
+
+            for i in range(len(self.matriz_adyacencia)):
+              paths, distances = dijkstra(self.matriz_adyacencia, start=i)
+              self.master_path_table[i] = paths
+              self.master_distance_table[i] = distances
 
     def _generar_enemigos(self, densidad: float = 0.05):
         id_enemigo = 0
@@ -408,19 +416,15 @@ class MapaProcedural:
             pygame.draw.rect(pantalla, (50, 0, 0), rect_entidad, 2)
         
     def encontrar_camino(self, origen, destino):
-        """
-        Encuentra el camino mas corto entre dos casillas.
-        origen: tupla (fila, col) - posición de inicio
-        destino: tupla (fila, col) - posición objetivo
-        
-        retorna: (distancia_total, lista_de_nodos_como_tuplas)
-        """
-        return dijkstra(
-            self.grid_costos,
-            self.grid_caminable,
-            origen,
-            destino
-        )
+       origen_id = origen[0] * self.ancho + origen[1]
+       destino_id = destino[0] * self.ancho + destino[1]
+    
+       distancia = self.master_distance_table[origen_id][destino_id]
+       camino_ids = self.master_path_table[origen_id][destino_id]
+    
+       camino = [(nodo // self.ancho, nodo % self.ancho) for nodo in camino_ids]
+    
+       return distancia, camino
     def get_rutas_disponibles(self, nodo_actual, max_distancia):
         """
         Para IA de enemigos: todas las casillas alcanzables dentro de distancia.
