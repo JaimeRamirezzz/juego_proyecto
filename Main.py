@@ -314,7 +314,7 @@ while running:
         pass
     elif estado_partida ==2:# la animacion que no se si quitar
         estado_partida = 3
-        peleilla = Enfrentamiento()
+        peleilla = Enfrentamiento(aliados)
     elif estado_partida == 3:
         true_o_false, berificador = peleilla._verificar_fin_combate()
         if true_o_false:
