@@ -9,7 +9,7 @@ from panel_ataques import PanelAtaques
 from Combat_manager import Combat_Manager
 import numpy as np
 from alg import dijkstra
-from config import ANCHO_PANTALLA, ALTO_PANTALLA, ALTO_PANEL, ALTO_MAPA
+from config import ANCHO_PANTALLA, ALTO_PANTALLA, ALTO_PANEL, ALTO_MAPA, TAMANO_CASILLA
 from Clase_Enemigo import Enemy
 # Clase para definir las propiedades de cada tipo de suelo/terreno de manera aleatoria
 class TipoBioma(Enum):
