@@ -12,6 +12,7 @@ from personajes.creacion_personaje_ui import PantallaCreacionPersonajes
 from personajes.subida_nivel_ui import PantallaRecompensa
 from primera_mapa.mapa_juego.mapa import MapaProcedural
 from Clase_Enemigo import Enemy
+from config import ANCHO_PANTALLA, ALTO_PANTALLA, ALTO_PANEL, ALTO_MAPA, ANCHO_CASILLAS, ALTO_CASILLAS, TAMANO_CASILLA
 ANCHO_PANTALLA = 1000
 ALTO_PANTALLA = 700
 
