@@ -79,7 +79,7 @@ class Enemy:
         if accion == "Ataque":
             if objetivos_validos:
                 # Ataca al más débil (puedes cambiar esta lógica luego Jaime)
-                objetivo = min(objetivos_validos, key=lambda x: x.hp_actual)
+                objetivo = min([i for i in objetivos_validos if i.esta_vivo()], key=lambda x: x.hp_actual)
                 daño = self.calculate_damage()
                 
                 # Faltaría la lógica de Moverse hacia él antes de atacar usando take_turn()

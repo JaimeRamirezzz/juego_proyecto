@@ -11,7 +11,7 @@ from personajes.arquero import Arquero
 from personajes.creacion_personaje_ui import PantallaCreacionPersonajes
 from personajes.subida_nivel_ui import PantallaRecompensa
 from primera_mapa.mapa_juego.mapa import MapaProcedural
-
+from Clase_Enemigo import Enemy
 ANCHO_PANTALLA = 1000
 ALTO_PANTALLA = 700
 
@@ -252,6 +252,8 @@ while running:
                     estado_partida = 2
 
         if estado_partida == 3:
+            if type(peleilla.entidad_actual) == Enemy:
+                peleilla.entidad_actual.ejecutar_turno_ia(peleilla.aliados, )#***************************************falta terminar
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1: # Botón izquierdo del ratón presionado
                     if pos_raton[1] > 550:# es temporal, se encargará de saber si el raton está por debajo del mapa o no
