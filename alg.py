@@ -1,11 +1,6 @@
 import numpy as np
-from primera_mapa.mapa_juego.mapa import MapaProcedural
 na = np.nan
 inf = np.inf
-
-lista = [MapaProcedural.generar_matriz_adyacencia]
-
-graph = np.array(lista)
 
 def dijkstra(graph, start):
     distances = np.fromiter((0 if i == start else np.inf for i in range(len(graph))), dtype='float')
@@ -33,21 +28,3 @@ def dijkstra(graph, start):
 
     return paths, distances_dict
 
-
-master_path_table = {}
-master_distance_table = {}
-
-for i in range(len(graph)):
-    paths, distances = dijkstra(graph, start=i)
-    master_path_table[i] = paths
-    master_distance_table[i] = distances
-
-
-
-# distance
-distanceto = master_distance_table[0][1]
-print(f"distancia mas corta de {distanceto}")
-
-# path
-path_table = master_path_table[0][1]
-print(f"camino tomado {path_table}")
