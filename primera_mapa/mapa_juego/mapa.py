@@ -10,7 +10,7 @@ from Combat_manager import Combat_Manager
 import numpy as np
 from alg import dijkstra
 from config import ANCHO_PANTALLA, ALTO_PANTALLA, ALTO_PANEL, ALTO_MAPA
-
+from Clase_Enemigo import Enemy
 # Clase para definir las propiedades de cada tipo de suelo/terreno de manera aleatoria
 class TipoBioma(Enum):
     AGUA_PROFUNDA = auto()
@@ -63,101 +63,6 @@ class Configuracionmapa:
 # Clase para gestionar la construcción y el dibujo del nivel 
 # si queremos que los enemigos se generen por el tipo de mapa, hay que indicar
 # que tipo de enemigo queremos que se genere dependiendo del bioma y meter la class enemigo aqui
-class Enemy:
-    _id_counter = 10000 # para dar prioridad a los personajes jugables
-    def __init__(self, start_node, health, mobility, velocidad, level=1, equipo="enemigo", nombre="Enemigo"):
-        self.current_node = start_node
-        self.health = health
-        self.max_health = health
-        self.max_mobility = mobility
-        self.current_mobility = mobility
-        self.color = (255, 50, 50) # Color rojo para los enemigos           self.base_damage = 10 # nerf importante
-        self.turn = False
-        self.velocidad = velocidad
-        self.equipo = equipo
-        self.name = nombre
-        self._vivo = True
-        self.id = Enemy._id_counter
-        Enemy._id_counter +=1
-        
-        # subir nivel
-        self.level = level
-        self.experience = 0
-
-    def level_up(self, exp_gained):
-
-        self.experience += exp_gained
-        
-        exp_needed = int(100 * (self.level ** 1.5)) 
-
-        if self.experience >= exp_needed:
-            self.level += 1
-            self.experience -= exp_needed
-            self.max_health = int(self.max_health * 1.25) 
-            self.health = self.max_health                
-            print(f"Enemy leveled up to Level {self.level}!")
-
-    def calculate_damage(self):
-
-        progressive_damage = int(self.base_damage * (1.15 ** (self.level - 1)))
-        return progressive_damage
-
-    def attack(self, Combat_Manager, target):
-        #combat manager lo cree en otra carpeta
-
-        if self.turn:
-            actual_damage = self.calculate_damage()
-            target.health -= actual_damage
-            print(f"Daño del {self.name} {actual_damage}")
-            Combat_Manager.next_turn()
-        else:
-            pass
-
-    def take_damage(self, amount):
-
-        self.health -= amount
-        if self.health <= 0:
-            self._vivo=False
-        print(f"Daño recibido {amount}! vida {self.health}")
-    
-    def esta_vivo(self):
-        return self._vivo
-
-    def evaluate_routes(self, routes_dict):
-        """
-        NUEVA FUNCIÓN: Recibe un diccionario de nodos del mapa y devuelve los vecinos válidos.
-        Formato de diccionario esperado: {node_id: [neighbor_id1, neighbor_id2, ...]}
-
-        poner en funcion de mi otra funcion de busqueda simplemente cambiar nombres self.current_node y routes_dict
-        """
-        if self.turn == True:
-            if self.current_node in routes_dict:
-                available_paths = routes_dict[self.current_node]
-                print(f"Rutas disponibles {self.current_node}: {available_paths}")
-            return available_paths
-
-    def take_turn(self, master_path_table, master_distance_table, target_node, path_table, Combat_manager):
-        
-        
-
-        # chequeo de seguiridad para evitar errores
-
-        if self.turn: 
-            if self.current_node in path_table and target_node in path_table[self.current_node]:
-            # mira las rutas del mapa
-
-                path_table = master_path_table[self.current_node][target_node]
-
-            
-                distance_to_path = master_distance_table[self.current_node][target_node]
-
-                self.max_mobility -= distance_to_path
- 
-
-                print(f"\n-Turno enemigo-")
-                print(f"objetivo: {target_node} | camino: {path_table}")
-                Combat_Manager.next_turn()
-                self.current_mobility = self.max_mobility 
 
 
 # necesitamos definir la clase casilla para que hayan vacias, con obstaculos, movimiento, zona de ataque
@@ -449,9 +354,7 @@ class MapaProcedural:
         for fila in self.casillas:
             for casilla in fila:
                 # Casilla vacía, caminable, sin obstáculo, sin entidad
-                if (not casilla.obstaculo and 
-                    not casilla.esta_ocupada() and
-                    self.PROPIEDADES_BIOMA.get(casilla.bioma, {}).get('caminable', True)):
+                if not casilla.obstaculo and not casilla.esta_ocupada(): # colocar_jugador ya usa propiedades_bioma automaticamente, la casilla ya tiene obstaculo
                     
                     casilla.colocar_entidad(jugador)
                     casilla.tipo = Tipo_casilla.PERSONAJE_JUGADOR
@@ -551,10 +454,11 @@ class MapaProcedural:
     def actualizar_grid(self, fila, col):
     #actualiza los grids numpy cuando una casilla cambia.
     #Llama esto después de mover/colocar/quitar entidades.
-    
-     casilla = self.casillas[fila][col]
-     self.grid_costos[fila, col] = casilla.costo_movimiento
-     self.grid_caminable[fila, col] = not casilla.obstaculo
+
+        casilla = self.casillas[fila][col]
+        self.grid_costos[fila, col] = casilla.costo_movimiento
+        self.grid_caminable[fila, col] = not casilla.obstaculo
+
     def generar_matriz_adyacencia(self) -> np.ndarray:
         """
         Traduce el grid 2D del mapa actual a una matriz de adyacencia de nodos numéricos.
