@@ -78,7 +78,7 @@ from panel_ataques import PanelAtaques
 class Enfrentamiento:
     def __init__(self, jugadores: list):
         self._jugadas = 0
-        self.tablero = MapaProcedural()
+        self.tablero = MapaProcedural(ANCHO_PANTALLA, alto=ALTO_PANTALLA-ALTO_PANEL, tamaño_casilla=TAMANO_CASILLA)
         self.aliados = jugadores
         self.enemigos = self.tablero.lista_enemigos()
         self.todas_entidades = []
@@ -180,12 +180,12 @@ class Enfrentamiento:
             return [e for e in self.aliados if e.esta_vivo()]
         return [e for e in self.enemigos if e.esta_vivo()]
 
-    def lo_que_se_ve(self):#Muestra todo el mapa y la interfaz que puede ver el usuario
-        self.tablero.mostrar_mapa()#En esta linea va el metodo que hace que el objeto del mapa, se muestre
-        self.mostrar_ui()
+    def lo_que_se_ve(self, window):#Muestra todo el mapa y la interfaz que puede ver el usuario
+        self.tablero.dibujar(window)#En esta linea va el metodo que hace que el objeto del mapa, se muestre
+        self.mostrar_ui(window)
         #No se si en mostrar mapa estará tambien mostrar aliados y enemigos
 
-    def mostrar_ui(self):
+    def mostrar_ui(self, window):
         self.panel_ui.dibujar(window, self._jugadas, self.entidad_actual)
 
 
@@ -242,7 +242,7 @@ while running:
                     aliados = pantalla_creacion.obtener_personajes()
                     personaje_a_mejorar = aliados[indice_recompensa]
                     pantalla_recompensa = PantallaRecompensa(font, GB_COLORS, personaje_a_mejorar)
-                    estado_partida = 4
+                    estado_partida = 2
                 
             elif estado_partida == 4:
                 terminado = pantalla_recompensa.manejar_evento(event)
@@ -322,27 +322,9 @@ while running:
                 estado_partida=4
             else:
                 estado_partida=9
-        if not Enfrentamiento.activo:
-            print("="*40)
-            print("  ⚔️  COMBATE INICIADO  ⚔️")
-            print("="*40)
-            entidad_actual = Enfrentamiento.iniciar_combate(usar_atb=False)
-        if entidad_actual and entidad_actual.esta_vivo() and entidad_actual.equipo == "enemigo":
-            pg.time.delay(500)  # Pequeña pausa para ver la acción
-            objetivos = Enfrentamiento.obtener_objetivos_validos(entidad_actual)
-            if objetivos:
-                objetivo = min(objetivos, key=lambda x: x.hp_actual)
-                daño = entidad_actual.realizar_ataque(objetivo)
-                objetivo.recibir_daño(daño)
-                print(f"¡{entidad_actual.nombre} hace {daño:.1f} daño a {objetivo.nombre}!")
                 
-                Enfrentamiento._actualizar_lista_entidades()
-                if not Enfrentamiento._verificar_fin_combate():
-                    Enfrentamiento.finalizar_turno()
-                    entidad_actual = Enfrentamiento.pequeTurno()
-                    if entidad_actual is None:
-                        if Enfrentamiento.granTurno():
-                            entidad_actual = Enfrentamiento.pequeTurno()
+        pg.time.delay(500)  # Pequeña pausa para ver la acción
+            
     elif estado_partida == 4:
         pass
     
@@ -357,7 +339,7 @@ while running:
         pass
     elif estado_partida == 3:
         # Dibujar estado del combate
-        peleilla.lo_que_se_ve()
+        peleilla.lo_que_se_ve(window)
     elif estado_partida == 4:
         pantalla_recompensa.dibujar(window)
 
@@ -418,9 +400,3 @@ while running:
 
 pg.quit()
 
-#CLASES JUGADORES
-jugador1 = Caballero("Caballero")
-jugador2 = Tanque("Tanque")
-jugador3 = Arquero("Arquero")
-
-aliados = [jugador1, jugador2, jugador3]
