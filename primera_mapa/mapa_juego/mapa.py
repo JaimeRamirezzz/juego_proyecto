@@ -344,7 +344,7 @@ class MapaProcedural:
         
         return Enemy(
             start_node=(x, y),
-            health=stats["vida"],
+            max_health=stats["vida"],
             mobility=10,
             velocidad=stats.get("velocidad", 10),
             level=1,
