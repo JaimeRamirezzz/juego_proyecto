@@ -10,11 +10,10 @@ GB_COLORS = {
 }
 class Personaje:
     _id_counter = 0
-
+ 
     def __init__(self, nombre, clase, vida, ataque, defensa, velocidad, ataques=None, equipo="jugador"):
         Personaje._id_counter += 1
         self.id = Personaje._id_counter
-
         self.nombre = nombre
         self.clase = clase
         self.equipo = equipo

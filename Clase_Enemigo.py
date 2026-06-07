@@ -5,12 +5,12 @@ class Enemy:
     _id_counter = 10000 # para dar prioridad a los personajes jugables
     
     # MODIFICADO: Añadido 'nombre' a los parámetros, ya que el bucle lo necesita para los prints
-    def __init__(self, nombre, start_node, max_health, mobility, velocidad, level=1, equipo="enemigo"):
+    def __init__(self, nombre, start_node, vida, mobility, velocidad, level=1, equipo="enemigo"):
         self.nombre = nombre # <--- NUEVO
         self.current_node = start_node
         #Cambiado a hp_actual y hp_max para coincidir con la lógica gráfica
-        self.hp_max = max_health
-        self.hp_actual = max_health
+        self.hp_max = vida
+        self.hp_actual = vida
         self.max_mobility = mobility
         self.current_mobility = mobility
         self.color = () 
