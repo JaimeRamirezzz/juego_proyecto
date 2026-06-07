@@ -79,7 +79,7 @@ class Enfrentamiento:
     def __init__(self, jugadores: list):
         print(1)
         self._jugadas = 0
-        self.tablero = MapaProcedural(8, 8)
+        self.tablero = MapaProcedural(ANCHO_CASILLAS, ALTO_CASILLAS)
         print(2)
         self.aliados = jugadores
         for i in self.aliados:
