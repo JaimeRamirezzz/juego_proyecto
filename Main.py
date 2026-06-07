@@ -83,12 +83,12 @@ class Enfrentamiento:
         print(2)
         self.aliados = jugadores
         print(3)
-        self.enemigos = self.tablero.lista_enemigos()
+        self.enemigos = self.tablero.enemigos
         print(4)
+        self.orden = ColaEnlazada()
         self.todas_entidades = []
         self._actualizar_lista_entidades()
         print(5)
-        self.orden = ColaEnlazada()
         self.entidad_actual = None
         self.historial_turnos = []
         self.activo = False
