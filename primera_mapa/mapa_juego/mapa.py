@@ -344,7 +344,7 @@ class MapaProcedural:
         
         return Enemy(
             start_node=(x, y),
-            health=stats["vida"],
+            max_health=stats["vida"],
             mobility=10,
             velocidad=stats.get("velocidad", 10),
             level=1,
@@ -392,39 +392,41 @@ class MapaProcedural:
             # Dibujar entidad si hay
             if casilla.entidad:
                 self._dibujar_entidad(pantalla, casilla)
+
     def _dibujar_entidad(self, pantalla, casilla):
-    #Dibuja un círculo (jugador) o cuadrado (enemigo) en la casilla.
-     centro_x = casilla.x + casilla.tamaño // 2
-     centro_y = casilla.y + casilla.tamaño // 2
-     radio = casilla.tamaño // 3
-        
-     entidad = casilla.entidad
-        
-     if getattr(entidad, 'equipo', None) == 'jugador':
+        # Dibuja un círculo (jugador) o cuadrado (enemigo) en la casilla.
+        centro_x = casilla.x + casilla.tamaño // 2
+        centro_y = casilla.y + casilla.tamaño // 2
+        radio = casilla.tamaño // 3
+
+        entidad = casilla.entidad
+
+        if getattr(entidad, 'equipo', None) == 'jugador':
             color = getattr(entidad, 'color', (100, 200, 255))
             pygame.draw.circle(pantalla, color, (centro_x, centro_y), radio)
             pygame.draw.circle(pantalla, (255, 255, 255), (centro_x, centro_y), radio, 2)
-     else:
+        else:
             color = getattr(entidad, 'color', (255, 50, 50))
             rect_entidad = pygame.Rect(
-                centro_x - radio, 
-                centro_y - radio, 
-                radio * 2, 
+                centro_x - radio,
+                centro_y - radio,
+                radio * 2,
                 radio * 2
             )
             pygame.draw.rect(pantalla, color, rect_entidad)
-            pygame.draw.rect(pantalla, "#320000", rect_entidad, 2)
+            pygame.draw.rect(pantalla, (50, 0, 0), rect_entidad, 2)
         
     def encontrar_camino(self, origen, destino):
-       origen_id = origen[0] * self.ancho + origen[1]
-       destino_id = destino[0] * self.ancho + destino[1]
-    
-       distancia = self.master_distance_table[origen_id][destino_id]
-       camino_ids = self.master_path_table[origen_id][destino_id]
-    
-       camino = [(nodo // self.ancho, nodo % self.ancho) for nodo in camino_ids]
-    
-       return distancia, camino
+        origen_id = origen[0] * self.ancho + origen[1]
+        destino_id = destino[0] * self.ancho + destino[1]
+
+        distancia = self.master_distance_table[origen_id][destino_id]
+        camino_ids = self.master_path_table[origen_id][destino_id]
+
+        camino = [(nodo // self.ancho, nodo % self.ancho) for nodo in camino_ids]
+
+        return distancia, camino
+
     def get_rutas_disponibles(self, nodo_actual, max_distancia):
         """
         Para IA de enemigos: todas las casillas alcanzables dentro de distancia.
