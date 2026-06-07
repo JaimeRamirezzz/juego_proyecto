@@ -32,6 +32,8 @@ class PanelAtaques:
 
     def dibujar(self, pantalla, ronda, personaje_actual):
         """Disegna lo sfondo, le barre e i bottoni."""
+        if personaje_actual is None:
+            return 
         pygame.draw.rect(pantalla, self.color_fondo, self.rect)
         pygame.draw.rect(pantalla, self.color_borde, self.rect, 3)
 
