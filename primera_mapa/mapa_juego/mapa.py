@@ -414,7 +414,7 @@ class MapaProcedural:
                 radio * 2
             )
             pygame.draw.rect(pantalla, color, rect_entidad)
-            pygame.draw.rect(pantalla, (50, 0, 0), rect_entidad, 2)
+            pygame.draw.rect(pantalla, "#320000", rect_entidad, 2)
         
     def encontrar_camino(self, origen, destino):
         origen_id = origen[0] * self.ancho + origen[1]
