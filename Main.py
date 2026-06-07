@@ -77,12 +77,17 @@ from panel_ataques import PanelAtaques
 
 class Enfrentamiento:
     def __init__(self, jugadores: list):
+        print(1)
         self._jugadas = 0
-        self.tablero = MapaProcedural(ANCHO_PANTALLA, alto=ALTO_PANTALLA-ALTO_PANEL, tamaño_casilla=TAMANO_CASILLA)
+        self.tablero = MapaProcedural(ANCHO_PANTALLA,ALTO_PANTALLA,TAMANO_CASILLA)
+        print(2)
         self.aliados = jugadores
+        print(3)
         self.enemigos = self.tablero.lista_enemigos()
+        print(4)
         self.todas_entidades = []
         self._actualizar_lista_entidades()
+        print(5)
         self.orden = ColaEnlazada()
         self.entidad_actual = None
         self.historial_turnos = []
@@ -90,7 +95,9 @@ class Enfrentamiento:
         self.ganador = None
         self.usar_atb = False
         self.panel_ui = PanelAtaques(0, 350, 800, 250)
+        print(6)
         self.paso_de_ronda()
+        print(7)
         
     def _actualizar_lista_entidades(self):
         self.todas_entidades = []
@@ -204,6 +211,11 @@ def pantalla_inicio():
     window.blit(font.render("Bienvenido al juego", True, GB_COLORS["white"]), (380, 200))
     window.blit(font.render("Pulse espacio para pasar a la creacion de personaje", True, GB_COLORS["white"]), (200, 600))
 
+# Para mostrar la pantalla de cambio
+def pantalla_cambio():
+    window.blit(font.render("toca enfrentarse a algo", True, GB_COLORS["white"]), (380, 200))
+    window.blit(font.render("buena suerte", True, GB_COLORS["white"]), (200, 600))
+
 # Para mostrar la pantalla de creacion de personajes, esta hecha de forma temporal para ser modificada si la quieres cambiar hazlo, no tengas miedo
 def pantalla_derrota():
     window.blit(font.render("Fuiste derrotado", True, GB_COLORS["white"]), (380, 200))
@@ -268,19 +280,19 @@ while running:
                             
                             if casilla_clickada.entidad is not None and casilla_clickada.entidad.equipo == "enemigo":
                                 dist, camino = peleilla.tablero.encontrar_camino( peleilla.entidad_actual.current_node, destino)
-                                if dist <= peleilla.entidad_actual.max_mobility:
+                                if dist <= peleilla.entidad_actual.velocidad():
                                     casilla_clickada.entidad.take_damage(
                                 peleilla.entidad_actual.ataque
                                 )
                                 peleilla.paso_de_turno()
                             elif not casilla_clickada.esta_ocupada() and not casilla_clickada.obstaculo:
-                              dist, camino = peleilla.tablero.encontrar_camino(
-                              peleilla.entidad_actual.current_node, destino
+                                dist, camino = peleilla.tablero.encontrar_camino(
+                                peleilla.entidad_actual.current_node, destino
                             )
-                            if dist <= peleilla.entidad_actual.max_mobility:
-                              casilla_actual.remover_entidad()
-                              casilla_clickada.colocar_entidad(peleilla.entidad_actual)
-                              peleilla.paso_de_turno()    
+                                if dist <= peleilla.entidad_actual.max_mobility:
+                                    casilla_actual.remover_entidad()
+                                    casilla_clickada.colocar_entidad(peleilla.entidad_actual)
+                                    peleilla.paso_de_turno()    
 
                 elif event.button == 2: # Botón medio del ratón presionado
                     pass
@@ -313,6 +325,7 @@ while running:
     elif estado_partida == 1:
         pass
     elif estado_partida ==2:# la animacion que no se si quitar
+        pantalla_cambio()
         estado_partida = 3
         peleilla = Enfrentamiento(aliados)
     elif estado_partida == 3:
