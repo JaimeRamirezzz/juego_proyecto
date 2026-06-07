@@ -293,7 +293,7 @@ while running:
                             if casilla_clickada.entidad is not None and casilla_clickada.entidad.equipo == "enemigo":
                                 dist, camino = peleilla.tablero.encontrar_camino( peleilla.entidad_actual.current_node, destino)
                                 if dist <= peleilla.entidad_actual.velocidad():
-                                    casilla_clickada.entidad.recibir_daño(peleilla.entidad_actual.base_damage)
+                                    casilla_clickada.entidad.recibir_daño(peleilla.entidad_actual.ataque)
                                     peleilla.paso_de_turno()
                             elif not casilla_clickada.esta_ocupada() and not casilla_clickada.obstaculo:
                                 dist, camino = peleilla.tablero.encontrar_camino(

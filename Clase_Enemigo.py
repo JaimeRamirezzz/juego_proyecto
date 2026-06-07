@@ -14,9 +14,9 @@ class Enemy:
         self.max_mobility = mobility
         self.current_mobility = mobility
         self.color = () 
-        self.base_damage = 10 
+        self.ataque = 10 
         # guardamos la velocidad en una variable interna
-        self._velocidad = velocidad
+        self.velocidad_base = velocidad
         self.equipo = equipo
         self.id = Enemy._id_counter
         Enemy._id_counter += 1
@@ -124,7 +124,7 @@ class Enemy:
 
     
     def velocidad(self):
-        return self._velocidad
+        return self.velocidad_base
 
 # +Comprueba hp_actual en lugar de una variable booleana separada
     def esta_vivo(self):
@@ -143,7 +143,7 @@ class Enemy:
 
 
     def calculate_damage(self):
-        progressive_damage = int(self.base_damage * (1.15 ** (self.level - 1)))
+        progressive_damage = int(self.ataque * (1.15 ** (self.level - 1)))
         return progressive_damage
 
 

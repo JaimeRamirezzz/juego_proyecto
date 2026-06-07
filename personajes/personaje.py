@@ -27,7 +27,8 @@ class Personaje:
         self.ataque = ataque
         self.defensa = defensa
         self.velocidad_base = velocidad
-        
+        self.max_mobility = velocidad
+        self.current_mobility = velocidad
         self.aguante = 10
         self.capacidad_aguante = self.aguante
          # posición para el mapa
