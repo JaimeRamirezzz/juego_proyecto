@@ -276,8 +276,9 @@ while running:
                 peleilla.paso_de_turno()
             elif type(peleilla.entidad_actual) == Enemy:
                 peleilla.entidad_actual.ejecutar_turno_ia(peleilla.aliados, peleilla.tablero.master_distance_table, peleilla.tablero.master_distance_table)
+                peleilla.paso_de_turno()
 
-            if event.type == pg.MOUSEBUTTONDOWN:
+            elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1: # Botón izquierdo del ratón presionado
                     if pos_raton[1] > 550:# es temporal, se encargará de saber si el raton está por debajo del mapa o no
                         pass
@@ -292,18 +293,16 @@ while running:
                             if casilla_clickada.entidad is not None and casilla_clickada.entidad.equipo == "enemigo":
                                 dist, camino = peleilla.tablero.encontrar_camino( peleilla.entidad_actual.current_node, destino)
                                 if dist <= peleilla.entidad_actual.velocidad():
-                                    casilla_clickada.entidad.recibir_daño(
-                                peleilla.entidad_actual.base_damage
-                                )
-                                peleilla.paso_de_turno()
+                                    casilla_clickada.entidad.recibir_daño(peleilla.entidad_actual.base_damage)
+                                    peleilla.paso_de_turno()
                             elif not casilla_clickada.esta_ocupada() and not casilla_clickada.obstaculo:
                                 dist, camino = peleilla.tablero.encontrar_camino(
                                 peleilla.entidad_actual.current_node, destino
                             )
                                 if dist <= peleilla.entidad_actual.max_mobility:
-                                    casilla_actual.remover_entidad()
-                                    casilla_clickada.colocar_entidad(peleilla.entidad_actual)
-                                    peleilla.paso_de_turno()    
+                                     casilla_actual.remover_entidad()
+                                     casilla_clickada.colocar_entidad(peleilla.entidad_actual)
+                                     peleilla.paso_de_turno()    
 
                 elif event.button == 2: # Botón medio del ratón presionado
                     pass

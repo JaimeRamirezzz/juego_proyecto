@@ -77,7 +77,8 @@ class Enemy:
         accion = self.decidir_accion()
         
         if accion == "Ataque":
-            if objetivos_validos:
+            vivos = [i for i in objetivos_validos if i.esta_vivo()]
+            if vivos:
                 # Ataca al más débil (puedes cambiar esta lógica luego Jaime)
                 objetivo = min([i for i in objetivos_validos if i.esta_vivo()], key=lambda x: x.hp_actual)
                 daño = self.calculate_damage()

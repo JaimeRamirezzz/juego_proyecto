@@ -6,7 +6,6 @@ from typing import Optional, List, Tuple, Dict
 from dataclasses import dataclass
 import os
 from panel_ataques import PanelAtaques
-from Combat_manager import Combat_Manager
 import numpy as np
 from alg import dijkstra
 from config import ANCHO_PANTALLA, ALTO_PANTALLA, ALTO_PANEL, ALTO_MAPA, TAMANO_CASILLA

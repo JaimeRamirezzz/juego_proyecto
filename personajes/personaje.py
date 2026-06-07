@@ -1,3 +1,13 @@
+GB_COLORS = {
+    'white': (224, 248, 208),
+    'light_gray': (136, 192, 112),
+    'dark_gray': (52, 104, 86),
+    'black': (8, 24, 32),
+    "green_bright": (120, 200, 80),    # Zona movimiento
+    "red_bright": (200, 80, 80),       # Zona ataque  
+    "yellow_bright": (255, 220, 80),   # Seleccionada
+    "blue_bright": (100, 150, 255),    # Hover
+}
 class Personaje:
     _id_counter = 0
 
@@ -71,7 +81,7 @@ class Personaje:
         print(f"Ataques: {self.ataques}")
         print("---------------")
     
-    def mostrar_en_turno(self):
+    def mostrar_en_turno(self, window, font):
         window.blit(font.render(f"{self.nombre}", True, GB_COLORS["white"]), (380, 200))#Nombre del personaje
         window.blit(font.render(f"1:{self.ataques[0].nombre()}", True, GB_COLORS["white"]), (200, 500))#nombre de los ataques disponibles
         window.blit(font.render(f"2:{self.ataques[1].nombre()}", True, GB_COLORS["white"]), (300, 650))
