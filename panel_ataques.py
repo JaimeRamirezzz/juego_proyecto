@@ -35,7 +35,7 @@ class PanelAtaques:
         pygame.draw.rect(pantalla, self.color_fondo, self.rect)
         pygame.draw.rect(pantalla, self.color_borde, self.rect, 3)
 
-        txt_turno = self.fuente_titulo.render(f"Ronda {ronda} - Turno: {personaje_actual.clase} ({personaje_actual.clase})", True, self.color_texto)
+        txt_turno = self.fuente_titulo.render(f"Ronda {ronda} - Turno: {personaje_actual.nombre} ({personaje_actual.clase})", True, self.color_texto)
         pantalla.blit(txt_turno, (self.rect.x + 15, self.rect.y + 10))
 
         if personaje_actual.equipo != "jugador":

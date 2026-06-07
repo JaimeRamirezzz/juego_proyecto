@@ -79,7 +79,7 @@ class Enfrentamiento:
     def __init__(self, jugadores: list):
         print(1)
         self._jugadas = 0
-        self.tablero = MapaProcedural(5, 5)
+        self.tablero = MapaProcedural(8, 8)
         print(2)
         self.aliados = jugadores
         for i in self.aliados:
@@ -98,6 +98,8 @@ class Enfrentamiento:
         self.usar_atb = False
         self.panel_ui = PanelAtaques(0, 350, 800, 250)
         print(6)
+        for i in self.aliados:
+            self.tablero.colocar_jugador(i)
         self.paso_de_ronda()
         print(7)
         
@@ -195,7 +197,8 @@ class Enfrentamiento:
         #No se si en mostrar mapa estará tambien mostrar aliados y enemigos
 
     def mostrar_ui(self, window):
-        self.panel_ui.dibujar(window, self._jugadas, self.entidad_actual)
+        pass
+        #self.panel_ui.dibujar(window, self._jugadas, self.entidad_actual)
 
 
 
