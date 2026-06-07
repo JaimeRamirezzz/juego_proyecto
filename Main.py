@@ -176,12 +176,16 @@ class Enfrentamiento:
         enemigos_vivos = any(e.esta_vivo() for e in self.enemigos)
         
         if not aliados_vivos:
-            return True, 'derrota'
+            self.ganador = 'derrota'
+            return True
+            
             
         if not enemigos_vivos:
-            return True, 'victoria'
+            self.ganador = 'victoria'
+            return True
             
-        return False, False
+            
+        return False
         
     def obtener_objetivos_validos(self, atacante=None):#Falta el mapa y falta revisar, de momento no usar
         atacante = atacante or self.entidad_actual
@@ -268,7 +272,9 @@ while running:
                     estado_partida = 2
 
         if estado_partida == 3:
-            if type(peleilla.entidad_actual) == Enemy:
+            if peleilla.entidad_actual is None:
+                peleilla.paso_de_turno()
+            elif type(peleilla.entidad_actual) == Enemy:
                 peleilla.entidad_actual.ejecutar_turno_ia(peleilla.aliados, peleilla.tablero, peleilla)
 
             if event.type == pg.MOUSEBUTTONDOWN:
@@ -334,9 +340,8 @@ while running:
         estado_partida = 3
         peleilla = Enfrentamiento(aliados)
     elif estado_partida == 3:
-        true_o_false, berificador = peleilla._verificar_fin_combate()
-        if true_o_false:
-            if berificador == 'victoria':
+        if peleilla._verificar_fin_combate():
+            if peleilla.ganador == 'victoria':
                 estado_partida=4
             else:
                 estado_partida=9
