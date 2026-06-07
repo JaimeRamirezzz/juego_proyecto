@@ -82,6 +82,8 @@ class Enfrentamiento:
         self.tablero = MapaProcedural(5, 5)
         print(2)
         self.aliados = jugadores
+        for i in self.aliados:
+            print(i.nombre)
         print(3)
         self.enemigos = self.tablero.enemigos
         print(4)
