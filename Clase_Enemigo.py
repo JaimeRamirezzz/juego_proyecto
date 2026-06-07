@@ -68,7 +68,7 @@ class Enemy:
         
         return accion_elegida
 
-    def ejecutar_turno_ia(self, objetivos_validos, master_path_table, graph):
+    def ejecutar_turno_ia(self, objetivos_validos, master_path_table, master_distance_table):
         # NUEVO: Este es el método MAESTRO que llamará tu clase Enfrentamiento.
         
         self.en_defensa = False # Reseteamos la defensa al inicio de su turno
@@ -93,7 +93,7 @@ class Enemy:
             self.defender()
             
         elif accion == "Huida":
-            self.huir(master_path_table, graph)
+            self.huir(master_path_table, master_distance_table)
 
 
 
@@ -104,7 +104,7 @@ class Enemy:
         self.en_defensa = True
         print(f" ¡{self.nombre} adopta una postura defensiva! Recibirá menos daño el próximo turno.")
 
-    def huir(self, master_path_table, graph):
+    def huir(self, master_path_table, master_distance_table):
         # NUEVO: Lógica básica de huida. Busca alejarse a un nodo aleatorio o "seguro".
         print(f"💨 ¡{self.nombre} entra en pánico e intenta huir!")
         
@@ -115,7 +115,7 @@ class Enemy:
             if nodos_alcanzables:
                 # Elige un nodo al azar para escapar
                 nodo_escape = r.choice(nodos_alcanzables)
-                self.take_turn(master_path_table, master_path_table, nodo_escape, graph)
+                self.take_turn(master_path_table, master_distance_table, nodo_escape, master_distance_table)
             else:
                 print(f" {self.nombre} está acorralado y no puede huir.")
 

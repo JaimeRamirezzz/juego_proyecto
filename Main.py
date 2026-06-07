@@ -130,7 +130,7 @@ class Enfrentamiento:
             return None
         self.entidad_actual = self.orden.pop()
         if self.entidad_actual.equipo == "jugador":
-            self.entidad_actual.recuperacion_por_turnos()
+            self.entidad_actual.recuperacion_por_turno()
        
         self.panel_ui.actualizar_jugador(self.entidad_actual)
         
@@ -275,7 +275,7 @@ while running:
             if peleilla.entidad_actual is None:
                 peleilla.paso_de_turno()
             elif type(peleilla.entidad_actual) == Enemy:
-                peleilla.entidad_actual.ejecutar_turno_ia(peleilla.aliados, peleilla.tablero, peleilla)
+                peleilla.entidad_actual.ejecutar_turno_ia(peleilla.aliados, peleilla.tablero.master_distance_table, peleilla.tablero.master_distance_table)
 
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1: # Botón izquierdo del ratón presionado
@@ -292,8 +292,8 @@ while running:
                             if casilla_clickada.entidad is not None and casilla_clickada.entidad.equipo == "enemigo":
                                 dist, camino = peleilla.tablero.encontrar_camino( peleilla.entidad_actual.current_node, destino)
                                 if dist <= peleilla.entidad_actual.velocidad():
-                                    casilla_clickada.entidad.take_damage(
-                                peleilla.entidad_actual.ataque
+                                    casilla_clickada.entidad.recibir_daño(
+                                peleilla.entidad_actual.base_damage
                                 )
                                 peleilla.paso_de_turno()
                             elif not casilla_clickada.esta_ocupada() and not casilla_clickada.obstaculo:
