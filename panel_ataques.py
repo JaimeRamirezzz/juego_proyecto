@@ -14,7 +14,7 @@ GB_COLORS = {
 }
 
 class PanelAtaques:
-    def __init__(self, x= 0, y=ALTO_MAPA, ancho=ANCHO_PANTALLA, alto =ALTO_PANEL):
+    def __init__(self, aliados, x= 0, y=ALTO_MAPA, ancho=ANCHO_PANTALLA, alto =ALTO_PANEL):
         self.rect = pygame.Rect(x, y, ancho, alto)
         
         # Inizializzazione dei font
@@ -33,6 +33,9 @@ class PanelAtaques:
         self.color_boton = (70, 70, 90)
         self.color_seleccionado = (200, 150, 0)
 
+        # Lista de aliados para mostrar sus vidas
+        self.aliados = aliados
+
     def actualizar_jugador(self, jugador_actual):
         """Riceve il personaggio attuale e filtra i suoi attacchi in base all'energia."""
         self.ataques_actuales = []
@@ -50,7 +53,7 @@ class PanelAtaques:
         pygame.draw.rect(pantalla, self.color_fondo, self.rect)
         pygame.draw.rect(pantalla, self.color_borde, self.rect, 3)
 
-        txt_turno = self.fuente_titulo.render(f"Ronda {ronda} - Turno: {personaje_actual.nombre} ()", True, self.color_texto)
+        txt_turno = self.fuente_titulo.render(f"Ronda {ronda} - Turno: {personaje_actual.nombre}", True, self.color_texto)
         pantalla.blit(txt_turno, (self.rect.x + 15, self.rect.y + 10))
 
         if personaje_actual.equipo != "jugador":
@@ -75,12 +78,20 @@ class PanelAtaques:
             ancho_boton = (self.rect.width - 50) // 2
             alto_boton = 55
 
-            contador = 0
+            font = pygame.font.SysFont("consolas", 20)
 
-            for i in personaje_actual.ataques:
-                contador += 1
-                font = pygame.font.SysFont("consolas", 20)
-                pantalla.blit(font.render(f"{contador}:{i.nombre()}", True, GB_COLORS["white"]), (200, 600))
+            for aliado in self.aliados:
+                pantalla.blit(font.render(f"{aliado.nombre} HP:{int(aliado.hp_actual)}/{aliado.hp_max}", True, GB_COLORS["white"]), (670, 470+(self.aliados.index(aliado)+1)*50))
+
+
+            pantalla.blit(font.render(f"Espacio: Mover", True, GB_COLORS["white"]), (420, 520))
+            pantalla.blit(font.render(f"Enter: Pasa Turno", True, GB_COLORS["white"]), (420, 570))
+            contador = 0
+            for j in range(4):
+                for i in personaje_actual.ataques:
+                    contador += 1
+
+                    pantalla.blit(font.render(f"{contador}:{i.nombre()} C->{i.coste()}  D->{i.potencia()}", True, GB_COLORS["white"]), (20, 560+((contador/2)*50)))
                 '''
                 columna = i % 2
                 fila = i // 2

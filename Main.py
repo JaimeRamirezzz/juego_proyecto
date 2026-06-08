@@ -96,7 +96,7 @@ class Enfrentamiento:
         self.activo = False
         self.ganador = None
         self.usar_atb = False
-        self.panel_ui = PanelAtaques(0, 350, 800, 250)
+        self.panel_ui = PanelAtaques(self.aliados)
         print(6)
         for i in self.aliados:
             self.tablero.colocar_jugador(i)
