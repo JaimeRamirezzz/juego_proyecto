@@ -266,7 +266,7 @@ class PantallaCreacionPersonajes:
         pantalla.blit(texto_render, (caja_x + padding, caja_y + padding))
 
         ayuda_ataque = self.font.render(
-            "E: cambiar atque",
+            "E: cambiar ataque",
             True,
             self.colores["light_gray"]
         )

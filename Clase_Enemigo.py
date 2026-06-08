@@ -14,7 +14,7 @@ class Enemy:
         self.max_mobility = mobility
         self.current_mobility = mobility
         self.color = () 
-        self.ataque = 10 
+        self.ataque = 3 
         # guardamos la velocidad en una variable interna
         self.velocidad_base = velocidad
         self.equipo = equipo

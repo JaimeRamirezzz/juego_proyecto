@@ -125,6 +125,12 @@ class Enfrentamiento:
         self.entidad_actual = self.orden.pop()
         
     def paso_de_turno(self):#Solo hace el cambio de turno
+        for enemigo in self.enemigos:
+            if not enemigo.esta_vivo():
+                for fila in self.tablero.casillas:
+                    for casilla in fila:
+                        if casilla.entidad is enemigo:
+                            casilla.remover_entidad()
         if self.orden.empty():
             self.paso_de_ronda()
             return None
@@ -279,8 +285,9 @@ while running:
                 if not turno_ia_ejecutado:
                     peleilla.entidad_actual.ejecutar_turno_ia(peleilla.aliados, peleilla.tablero.master_path_table, peleilla.tablero.master_distance_table, peleilla.tablero)
                     peleilla.paso_de_turno()
+                    turno_ia_ejecutado = True
+                else:
                     turno_ia_ejecutado = False
-
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1: # Botón izquierdo del ratón presionado
                     if pos_raton[1] > 550:# es temporal, se encargará de saber si el raton está por debajo del mapa o no
@@ -296,14 +303,14 @@ while running:
                             
                             if casilla_clickada.entidad is not None and casilla_clickada.entidad.equipo == "enemigo":
                                 dist, camino = peleilla.tablero.encontrar_camino( peleilla.entidad_actual.current_node, destino)
+                                print(f"Distancia al enemigo: {dist}, velocidad: {peleilla.entidad_actual.velocidad()}")
                                 if dist <= peleilla.entidad_actual.velocidad():
                                     casilla_clickada.entidad.recibir_daño(peleilla.entidad_actual.ataque)
                                     peleilla.paso_de_turno()
                             elif not casilla_clickada.esta_ocupada() and not casilla_clickada.obstaculo:
-                                dist, camino = peleilla.tablero.encontrar_camino(
-                                peleilla.entidad_actual.current_node, destino
-                            )
+                                dist, camino = peleilla.tablero.encontrar_camino(peleilla.entidad_actual.current_node, destino)
                                 if dist <= peleilla.entidad_actual.max_mobility:
+                                  if dist <= peleilla.entidad_actual.esta_vivo():
                                      casilla_actual.remover_entidad()
                                      casilla_clickada.colocar_entidad(peleilla.entidad_actual)
                                      peleilla.paso_de_turno()    

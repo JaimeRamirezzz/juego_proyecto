@@ -63,7 +63,7 @@ class Personaje:
             self.vivo = False
 
     def esta_vivo(self):
-        return self.vivo or self.hp_actual > 0
+        return self.vivo and self.hp_actual > 0
 
     def añadir_ataque(self, ataque):
         self.ataques.append(ataque)

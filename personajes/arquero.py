@@ -6,7 +6,7 @@ class Arquero(Personaje):
         super().__init__(
             nombre=nombre,
             clase="Arquero",
-            vida=14,
+            vida=20,
             ataque=5,
             defensa=2,
             velocidad=6,

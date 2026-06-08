@@ -6,7 +6,7 @@ class Caballero(Personaje):
         super().__init__(
             nombre=nombre,
             clase="Caballero",
-            vida=18,
+            vida=25,
             ataque=4,
             defensa=4,
             velocidad=3,

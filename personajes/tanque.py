@@ -6,7 +6,7 @@ class Tanque(Personaje):
         super().__init__(
             nombre=nombre,
             clase="Tanque",
-            vida=22,
+            vida=28,
             ataque=3,
             defensa=6,
             velocidad=2,

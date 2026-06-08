@@ -409,6 +409,9 @@ class MapaProcedural:
                color = getattr(entidad, 'color', (100, 200, 255))
             pygame.draw.circle(pantalla, color, (centro_x, centro_y), radio)
             pygame.draw.circle(pantalla, (255, 255, 255), (centro_x, centro_y), radio, 2)
+            if not entidad.esta_vivo():
+                pygame.draw.line(pantalla, (255, 90, 0), (centro_x - radio, centro_y - radio), (centro_x + radio, centro_y + radio), 3)
+                pygame.draw.line(pantalla, (255, 90, 0), (centro_x + radio, centro_y - radio), (centro_x - radio, centro_y + radio), 3)
         else:
             color = getattr(entidad, 'color', (255, 50, 50))
             rect_entidad = pygame.Rect(
@@ -480,8 +483,8 @@ class MapaProcedural:
         matriz_adyacencia = np.full((total_nodos, total_nodos), np.inf)
         np.fill_diagonal(matriz_adyacencia, 0)
         
-        # Direcciones: Arriba, Abajo, Izquierda, Derecha
-        direcciones = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        # Direcciones: Arriba, Abajo, Izquierda, Derecha y diagonales
+        direcciones = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
         
         # Función interna para convertir (fila, columna) -> ID único indexado
         def obtener_id(f, c):
