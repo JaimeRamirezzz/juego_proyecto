@@ -404,7 +404,7 @@ class MapaProcedural:
 
         if getattr(entidad, 'equipo', None) == 'jugador':
             if entidad is entidad_actual:
-                color = (255, 100, 0)
+                color = (175, 238, 238)
             else:
                color = getattr(entidad, 'color', (100, 200, 255))
             pygame.draw.circle(pantalla, color, (centro_x, centro_y), radio)
