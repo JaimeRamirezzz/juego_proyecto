@@ -134,11 +134,6 @@ class Enfrentamiento:
         if self.orden.empty():
             self.paso_de_ronda()
             return None
-        while not self.orden.empty():
-            siguiente = self.orden.pop()
-            if siguiente.esta_vivo():
-                self.entidad_actual = siguiente
-                break
         self.entidad_actual = self.orden.pop()
         if self.entidad_actual.equipo == "jugador":
             self.entidad_actual.recuperacion_por_turno()
