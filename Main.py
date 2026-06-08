@@ -323,7 +323,7 @@ while running:
                 elif event.button == 3: # Botón derecho del ratón presionado
                     pass
             elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_ENTER:
+                if event.key == pg.K_RETURN:
                     peleilla.paso_de_turno()
                     ataque_activo = False
                     planeando_movimiento = False
