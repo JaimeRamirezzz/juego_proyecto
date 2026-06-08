@@ -1,5 +1,7 @@
 import pygame
 from config import ANCHO_PANTALLA, ALTO_PANTALLA, ALTO_PANEL, ALTO_MAPA
+from personajes.personaje import Personaje
+from ataques import Ataque
 GB_COLORS = {
     'white': (224, 248, 208),
     'light_gray': (136, 192, 112),
@@ -78,7 +80,7 @@ class PanelAtaques:
             for i in personaje_actual.ataques:
                 contador += 1
                 font = pygame.font.SysFont("consolas", 20)
-                pantalla.blit(font.render(f"{contador}:{i.nombre}", True, GB_COLORS["white"]), (200, 600))
+                pantalla.blit(font.render(f"{contador}:{i.nombre()}", True, GB_COLORS["white"]), (200, 600))
                 '''
                 columna = i % 2
                 fila = i // 2

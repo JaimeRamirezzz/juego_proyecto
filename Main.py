@@ -207,8 +207,7 @@ class Enfrentamiento:
         #No se si en mostrar mapa estará tambien mostrar aliados y enemigos
 
     def mostrar_ui(self, window):
-        pass
-        #self.panel_ui.dibujar(window, self._jugadas, self.entidad_actual)
+        self.panel_ui.dibujar(window, self._jugadas, self.entidad_actual)
 
 
 
