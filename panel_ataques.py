@@ -1,5 +1,16 @@
 import pygame
 from config import ANCHO_PANTALLA, ALTO_PANTALLA, ALTO_PANEL, ALTO_MAPA
+GB_COLORS = {
+    'white': (224, 248, 208),
+    'light_gray': (136, 192, 112),
+    'dark_gray': (52, 104, 86),
+    'black': (8, 24, 32),
+    "green_bright": (120, 200, 80),    # Zona movimiento
+    "red_bright": (200, 80, 80),       # Zona ataque  
+    "yellow_bright": (255, 220, 80),   # Seleccionada
+    "blue_bright": (100, 150, 255),    # Hover
+}
+
 class PanelAtaques:
     def __init__(self, x= 0, y=ALTO_MAPA, ancho=ANCHO_PANTALLA, alto =ALTO_PANEL):
         self.rect = pygame.Rect(x, y, ancho, alto)
@@ -37,7 +48,7 @@ class PanelAtaques:
         pygame.draw.rect(pantalla, self.color_fondo, self.rect)
         pygame.draw.rect(pantalla, self.color_borde, self.rect, 3)
 
-        txt_turno = self.fuente_titulo.render(f"Ronda {ronda} - Turno: {personaje_actual.nombre} ({personaje_actual.clase})", True, self.color_texto)
+        txt_turno = self.fuente_titulo.render(f"Ronda {ronda} - Turno: {personaje_actual.nombre} ()", True, self.color_texto)
         pantalla.blit(txt_turno, (self.rect.x + 15, self.rect.y + 10))
 
         if personaje_actual.equipo != "jugador":
@@ -51,7 +62,7 @@ class PanelAtaques:
             pygame.draw.rect(pantalla, (255, 50, 50), (self.rect.x + 15, self.rect.y + 45, ancho_barra * porcentaje_vida, 15))
             
             # Barra dell'Aguante (Energia)
-            porcentaje_aguante = max(0, personaje_actual.capacidad_aguante / personaje_actual.capacidad_aguante_max)
+            porcentaje_aguante = max(0, personaje_actual.capacidad_aguante / (personaje_actual.aguante*2))
             pygame.draw.rect(pantalla, (0, 100, 0), (self.rect.x + 15, self.rect.y + 65, ancho_barra, 15))
             pygame.draw.rect(pantalla, (50, 255, 50), (self.rect.x + 15, self.rect.y + 65, ancho_barra * porcentaje_aguante, 15))
 
@@ -62,7 +73,13 @@ class PanelAtaques:
             ancho_boton = (self.rect.width - 50) // 2
             alto_boton = 55
 
-            for i, ataque in enumerate(self.ataques_actuales):
+            contador = 0
+
+            for i in personaje_actual.ataques:
+                contador += 1
+                font = pygame.font.SysFont("consolas", 20)
+                pantalla.blit(font.render(f"{contador}:{i.nombre}", True, GB_COLORS["white"]), (200, 600))
+                '''
                 columna = i % 2
                 fila = i // 2
                 x_boton = self.rect.x + margen_x + columna * (ancho_boton + 20)
@@ -82,6 +99,7 @@ class PanelAtaques:
                 # Testo delle statistiche (Costo e Descrizione)
                 txt_stats = self.fuente_stats.render(f"Coste Aguante: {ataque.coste()} | {ataque.descripcion()}", True, (200, 200, 200))
                 pantalla.blit(txt_stats, (x_boton + 10, y_boton + 30))
+                '''
 
     def detectar_clic(self, pos_raton):
         """Restituisce True se clicchi su un attacco valido."""

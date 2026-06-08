@@ -337,7 +337,7 @@ class MapaProcedural:
             TipoEnemigo.ESQUELETO_NIEVE: {"nombre": "Esqueleto Helado", "vida": 13, "ataque": 12, "defensa": 6, "velocidad": 13},
             TipoEnemigo.ELEMENTAL_FUEGO: {"nombre": "Elemental de Fuego", "vida": 5, "ataque": 25, "defensa": 10, "velocidad": 25},
             TipoEnemigo.COCODRILO_PANTANO: {"nombre": "Cocodrilo del Pantano", "vida": 10, "ataque": 18, "defensa": 15, "velocidad": 12},
-            TipoEnemigo.BANDIDO_PRADERA: {"nombre": "Bandido", "vida": 8, "ataque": 14, "defensa": 10, "velocidad": 15},
+            TipoEnemigo.BANDIDO_PRADERA: {"nombre": "Bandido", "vida": 8, "ataque": 14, "defensa": 10, "velocidad": 9},
         }
         
         stats = stats_base.get(tipo, {"nombre": "Desconocido", "vida": 10, "ataque": 5, "defensa": 2})
