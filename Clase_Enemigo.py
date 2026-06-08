@@ -68,7 +68,7 @@ class Enemy:
         
         return accion_elegida
 
-    def ejecutar_turno_ia(self, objetivos_validos, master_path_table, master_distance_table):
+    def ejecutar_turno_ia(self, objetivos_validos, master_path_table, master_distance_table, tablero):
         # NUEVO: Este es el método MAESTRO que llamará tu clase Enfrentamiento.
         
         self.en_defensa = False # Reseteamos la defensa al inicio de su turno
@@ -94,7 +94,7 @@ class Enemy:
             self.defender()
             
         elif accion == "Huida":
-            self.huir(master_path_table, master_distance_table)
+            self.huir(master_path_table, master_distance_table, tablero)
 
 
 
@@ -105,7 +105,7 @@ class Enemy:
         self.en_defensa = True
         print(f" ¡{self.nombre} adopta una postura defensiva! Recibirá menos daño el próximo turno.")
 
-    def huir(self, master_path_table, master_distance_table):
+    def huir(self, master_path_table, master_distance_table, tablero):
         # NUEVO: Lógica básica de huida. Busca alejarse a un nodo aleatorio o "seguro".
         print(f"💨 ¡{self.nombre} entra en pánico e intenta huir!")
         
@@ -169,7 +169,7 @@ class Enemy:
         return []
 
 
-    def take_turn(self, master_path_table, master_distance_table, target_node, graph):
+    def take_turn(self, master_path_table, master_distance_table, target_node, graph, tablero):
         # Verificamos que existan datos de ruta desde donde estamos hasta el objetivo
         if self.current_node in master_path_table and target_node in master_path_table[self.current_node]:
             path = master_path_table[self.current_node][target_node]
@@ -194,6 +194,11 @@ class Enemy:
 
                 # Verificamos si tenemos movilidad suficiente para dar este salto
                 if self.current_mobility >= costo_paso:
+                    fila_actual, col_actual = self.current_node
+                    fila_dest = paso // tablero.ancho
+                    col_dest = paso % tablero.ancho
+                    tablero.casillas[fila_actual][col_actual].remover_entidad()
+                    tablero.casillas[fila_dest][col_dest].colocar_entidad(self)
                     self.current_mobility -= costo_paso
                     self.current_node = paso # ACTUALIZAMOS POSICIÓN
                     print(f" {self.nombre} avanza al nodo {paso}. (Movilidad restante: {self.current_mobility})")

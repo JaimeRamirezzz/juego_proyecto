@@ -196,7 +196,7 @@ class Enfrentamiento:
         return [e for e in self.enemigos if e.esta_vivo()]
 
     def lo_que_se_ve(self, window):#Muestra todo el mapa y la interfaz que puede ver el usuario
-        self.tablero.dibujar(window)#En esta linea va el metodo que hace que el objeto del mapa, se muestre
+        self.tablero.dibujar(window, self.entidad_actual)#En esta linea va el metodo que hace que el objeto del mapa, se muestre
         self.mostrar_ui(window)
         #No se si en mostrar mapa estará tambien mostrar aliados y enemigos
 
@@ -236,7 +236,7 @@ pantalla_creacion = PantallaCreacionPersonajes(font, GB_COLORS)
 aliados = []
 pantalla_recompensa = None
 indice_recompensa = 0
-
+turno_ia_ejecutado = False
 # BUCLE PRINCIPAL
 running = True
 while running:
@@ -274,9 +274,12 @@ while running:
         if estado_partida == 3:
             if peleilla.entidad_actual is None:
                 peleilla.paso_de_turno()
+                turno_ia_ejecutado = False
             elif type(peleilla.entidad_actual) == Enemy:
-                peleilla.entidad_actual.ejecutar_turno_ia(peleilla.aliados, peleilla.tablero.master_distance_table, peleilla.tablero.master_distance_table)
-                peleilla.paso_de_turno()
+                if not turno_ia_ejecutado:
+                    peleilla.entidad_actual.ejecutar_turno_ia(peleilla.aliados, peleilla.tablero.master_path_table, peleilla.tablero.master_distance_table, peleilla.tablero)
+                    peleilla.paso_de_turno()
+                    turno_ia_ejecutado = False
 
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1: # Botón izquierdo del ratón presionado
@@ -285,6 +288,7 @@ while running:
                     else:
                         col = pos_raton[0] // peleilla.tablero.tamaño_casilla
                         fila = pos_raton[1] // peleilla.tablero.tamaño_casilla
+                        peleilla.tablero.casilla_seleccionada = (fila, col)
                         destino = (fila, col)
                         if 0 <= fila < peleilla.tablero.alto and 0 <= col < peleilla.tablero.ancho:
                             casilla_clickada = peleilla.tablero.casillas[fila][col]

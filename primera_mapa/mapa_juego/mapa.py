@@ -225,6 +225,7 @@ class MapaProcedural:
         self.alto = alto
         self.tamaño_casilla = tamaño_casilla
         self.offset_y = offset_y
+        self.casilla_seleccionada = None
         
         # Generar mapa procedural
         self.generador = GeneradorMapaProcedural(config)
@@ -369,7 +370,7 @@ class MapaProcedural:
                     return True
 
         return False
-    def dibujar(self, pantalla):
+    def dibujar(self, pantalla, entidad_actual= None):
     # dibuja el mapa completo: biomas, imágenes, entidades...
      for fila in self.casillas:
         for casilla in fila:
@@ -387,12 +388,13 @@ class MapaProcedural:
             
             # Borde sutil para distinguir casillas
             pygame.draw.rect(pantalla, (100, 100, 100), rect, 1)
-            
+            if self.casilla_seleccionada == (casilla.fila, casilla.col):
+              pygame.draw.rect(pantalla, (255, 220, 80), rect, 3)
             # Dibujar entidad si hay
             if casilla.entidad:
-                self._dibujar_entidad(pantalla, casilla)
+                self._dibujar_entidad(pantalla, casilla, entidad_actual)
 
-    def _dibujar_entidad(self, pantalla, casilla):
+    def _dibujar_entidad(self, pantalla, casilla, entidad_actual = None):
         # Dibuja un círculo (jugador) o cuadrado (enemigo) en la casilla.
         centro_x = casilla.x + casilla.tamaño // 2
         centro_y = casilla.y + casilla.tamaño // 2
@@ -401,7 +403,10 @@ class MapaProcedural:
         entidad = casilla.entidad
 
         if getattr(entidad, 'equipo', None) == 'jugador':
-            color = getattr(entidad, 'color', (100, 200, 255))
+            if entidad is entidad_actual:
+                color = (255, 100, 0)
+            else:
+               color = getattr(entidad, 'color', (100, 200, 255))
             pygame.draw.circle(pantalla, color, (centro_x, centro_y), radio)
             pygame.draw.circle(pantalla, (255, 255, 255), (centro_x, centro_y), radio, 2)
         else:
