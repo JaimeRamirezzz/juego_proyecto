@@ -213,11 +213,11 @@ class MapaProcedural:
     PROPIEDADES_BIOMA = {
         TipoBioma.AGUA_PROFUNDA: {'caminable': False, 'costo': 5.0},
         TipoBioma.PRADERA: {'caminable': True, 'costo': 1.0},
-        TipoBioma.BOSQUE: {'caminable': True, 'costo': 1.5, 'cobertura': 20},
-        TipoBioma.MONTAÑA: {'caminable': False, 'costo': 2.9},
-        TipoBioma.NIEVE: {'caminable': True, 'costo': 2.5},
-        TipoBioma.LAVA: {'caminable': False, 'costo': 3.9},
-        TipoBioma.PANTANO: {'caminable': True, 'costo': 3.0},
+        TipoBioma.BOSQUE: {'caminable': True, 'costo': 1.0, 'cobertura': 20},
+        TipoBioma.MONTAÑA: {'caminable': False, 'costo': 1.0},
+        TipoBioma.NIEVE: {'caminable': True, 'costo': 1.0},
+        TipoBioma.LAVA: {'caminable': False, 'costo': 2.0},
+        TipoBioma.PANTANO: {'caminable': True, 'costo': 1.0},
     }
     def __init__(self, ancho: int, alto: int, tamaño_casilla: int = 40, 
                  config: Configuracionmapa = None, carpeta_sprites: str = "imagen", offset_y: int = 0):
@@ -331,9 +331,9 @@ class MapaProcedural:
 
     def _crear_enemigo(self, tipo: TipoEnemigo, id_enemigo: int, x: int, y: int) -> Enemy:
         stats_base = {
-            TipoEnemigo.SLIME_AGUA: {"nombre": "Slime de Agua", "vida": 4, "ataque": 2, "defensa": 5, "velocidad": 6},
+            TipoEnemigo.SLIME_AGUA: {"nombre": "Slime de Agua", "vida": 4, "ataque": 2, "defensa": 5, "velocidad": 8},
             TipoEnemigo.LOBO_BOSQUE: {"nombre": "Lobo del Bosque", "vida": 9, "ataque": 15, "defensa": 8, "velocidad": 20},
-            TipoEnemigo.GOLEM_MONTAÑA: {"nombre": "Golem de Piedra", "vida": 25, "ataque": 20, "defensa": 25, "velocidad": 4},
+            TipoEnemigo.GOLEM_MONTAÑA: {"nombre": "Golem de Piedra", "vida": 25, "ataque": 20, "defensa": 25, "velocidad": 7},
             TipoEnemigo.ESQUELETO_NIEVE: {"nombre": "Esqueleto Helado", "vida": 13, "ataque": 12, "defensa": 6, "velocidad": 13},
             TipoEnemigo.ELEMENTAL_FUEGO: {"nombre": "Elemental de Fuego", "vida": 5, "ataque": 25, "defensa": 10, "velocidad": 25},
             TipoEnemigo.COCODRILO_PANTANO: {"nombre": "Cocodrilo del Pantano", "vida": 10, "ataque": 18, "defensa": 15, "velocidad": 12},
