@@ -51,10 +51,10 @@ class Configuracionmapa:
     persistencia: float = 0.5
     lacunaridad: float = 2.0
     nivel_agua_profunda: float = -0.6
-    nivel_pradera: float = 0.2
-    nivel_bosque: float = 0.4
-    nivel_montaña: float = 0.7
-    nivel_lava_temp: float = 0.5
+    nivel_pradera: float = 0.0
+    nivel_bosque: float = 0.3
+    nivel_montaña: float = 0.8
+    nivel_lava_temp: float = 0.6
 
     def __post_init__(self):
         if self.semilla is None:
@@ -164,11 +164,11 @@ class GeneradorMapaProcedural:
             return TipoBioma.MONTAÑA
         elif altura > cfg.nivel_bosque and temperatura > cfg.nivel_lava_temp:
             return TipoBioma.LAVA
-        if humedad > 0.6 and temperatura > 0.0:
+        if humedad > 0.2 and temperatura > 0.0:
             if altura < cfg.nivel_pradera:
                 return TipoBioma.PANTANO
             return TipoBioma.BOSQUE
-        if humedad > 0.3 and altura > cfg.nivel_pradera:
+        if humedad > 0.1 and altura > cfg.nivel_pradera:
             return TipoBioma.BOSQUE
         return TipoBioma.PRADERA # este es el default
         
