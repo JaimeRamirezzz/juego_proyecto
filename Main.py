@@ -135,6 +135,8 @@ class Enfrentamiento:
             self.paso_de_ronda()
             return None
         self.entidad_actual = self.orden.pop()
+        if not self.entidad_actual.esta_vivo():
+            return self.paso_de_turno()
         if self.entidad_actual.equipo == "jugador":
             self.entidad_actual.recuperacion_por_turno()
        
@@ -149,12 +151,13 @@ class Enfrentamiento:
     def ataque_real(self, indice, destino):#lo de real es para diferenciarlo de todo ataque existente, y lo de destino es a donde termina, porque el origen ya lo tendremos que es el self.activo o algo asi, me da pereza vuscar como estaba llamada el personaje que le toca atacar
         if type(self.entidad_actual) == Arquero:
             if self.entidad_actual.atacar(indice):
-                self.tablero.casillas(destino).entidad.recivir_daño(self.entidad_actual.ataques[indice].potencia()*self.entidad_actual.ataque)
+                casilla_toqueteada = self.tablero.casillas[destino[0]][destino[1]]
+                casilla_toqueteada.entidad.recivir_daño(self.entidad_actual.ataques[indice].potencia()*self.entidad_actual.ataque)
             else:
                 pass
         else:# por si da tiempo, para hacer que el resto de personajes solo ataquen a una distancia realista
             if self.entidad_actual.atacar(indice):
-                self.tablero.casillas(destino).entidad.recibir_daño(self.entidad_actual.ataques[indice].potencia()*self.entidad_actual.ataque)
+                self.tablero.casillas[destino[0]][destino[1]].entidad.recibir_daño(self.entidad_actual.ataques[indice].potencia()*self.entidad_actual.ataque)
             else:
                 pass
 
@@ -243,6 +246,7 @@ pantalla_recompensa = None
 indice_recompensa = 0
 turno_ia_ejecutado = False
 ataque_activo = False
+planeando_movimiento = False
 # BUCLE PRINCIPAL
 running = True
 while running:
@@ -290,9 +294,7 @@ while running:
                     turno_ia_ejecutado = False
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1: # Botón izquierdo del ratón presionado
-                    if pos_raton[1] > 550:# es temporal, se encargará de saber si el raton está por debajo del mapa o no
-                        pass
-                    else:
+                    if ataque_activo or planeando_movimiento:
                         col = pos_raton[0] // peleilla.tablero.tamaño_casilla
                         fila = pos_raton[1] // peleilla.tablero.tamaño_casilla
                         peleilla.tablero.casilla_seleccionada = (fila, col)
@@ -301,19 +303,20 @@ while running:
                             casilla_clickada = peleilla.tablero.casillas[fila][col]
                             casilla_actual = peleilla.tablero.casillas[peleilla.entidad_actual.current_node[0]][peleilla.entidad_actual.current_node[1]]
                             
-                            if casilla_clickada.entidad is not None and casilla_clickada.entidad.equipo == "enemigo":
+                            if ataque_activo:
                                 dist, camino = peleilla.tablero.encontrar_camino( peleilla.entidad_actual.current_node, destino)
                                 print(f"Distancia al enemigo: {dist}, velocidad: {peleilla.entidad_actual.velocidad()}")
                                 if dist <= peleilla.entidad_actual.velocidad():
-                                    casilla_clickada.entidad.recibir_daño(peleilla.entidad_actual.ataque)
-                                    peleilla.paso_de_turno()
-                            elif not casilla_clickada.esta_ocupada() and not casilla_clickada.obstaculo:
-                                dist, camino = peleilla.tablero.encontrar_camino(peleilla.entidad_actual.current_node, destino)
-                                if dist <= peleilla.entidad_actual.max_mobility:
-                                  if dist <= peleilla.entidad_actual.esta_vivo():
-                                     casilla_actual.remover_entidad()
-                                     casilla_clickada.colocar_entidad(peleilla.entidad_actual)
-                                     peleilla.paso_de_turno()  
+                                    if casilla_clickada.entidad is not None:
+                                        peleilla.ataque_real(indice_ataque, destino)
+                                        ataque_activo = False
+                            elif planeando_movimiento:
+                                if not casilla_clickada.esta_ocupada() and not casilla_clickada.obstaculo:
+                                    dist, camino = peleilla.tablero.encontrar_camino(peleilla.entidad_actual.current_node, destino)
+                                    if dist <= peleilla.entidad_actual.max_mobility:
+                                        if dist <= peleilla.entidad_actual.esta_vivo():
+                                            casilla_actual.remover_entidad()
+                                            casilla_clickada.colocar_entidad(peleilla.entidad_actual)  
 
                 elif event.button == 2: # Botón medio del ratón presionado
                     pass
@@ -322,15 +325,21 @@ while running:
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_ENTER:
                     peleilla.paso_de_turno()
+                    ataque_activo = False
+                    planeando_movimiento = False
+                elif event.key == pg.K_SPACE:
+                    planeando_movimiento = True
+                    ataque_activo = False
                 elif event.key in [pg.K_1, pg.K_2, pg.K_3, pg.K_4]:
+                    planeando_movimiento = False
                     ataque_activo = True
                     if event.key == pg.K_1:
                         indice_ataque = 0
-                    elif event.key == pg.K_2:
+                    elif event.key == pg.K_2 and len(peleilla.entidad_actual.ataques) > 1:
                         indice_ataque = 1
-                    elif event.key == pg.K_3:
+                    elif event.key == pg.K_3 and len(peleilla.entidad_actual.ataques) > 2:
                         indice_ataque = 2
-                    elif event.key == pg.K_4:
+                    elif event.key == pg.K_4 and len(peleilla.entidad_actual.ataques) > 3:
                         indice_ataque = 3
             '''if event.key == pg.K_1:
                 # Atacar automáticamente con el jugador actual
