@@ -242,6 +242,7 @@ aliados = []
 pantalla_recompensa = None
 indice_recompensa = 0
 turno_ia_ejecutado = False
+ataque_activo = False
 # BUCLE PRINCIPAL
 running = True
 while running:
@@ -312,12 +313,25 @@ while running:
                                   if dist <= peleilla.entidad_actual.esta_vivo():
                                      casilla_actual.remover_entidad()
                                      casilla_clickada.colocar_entidad(peleilla.entidad_actual)
-                                     peleilla.paso_de_turno()    
+                                     peleilla.paso_de_turno()  
 
                 elif event.button == 2: # Botón medio del ratón presionado
                     pass
                 elif event.button == 3: # Botón derecho del ratón presionado
                     pass
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_ENTER:
+                    peleilla.paso_de_turno()
+                elif event.key in [pg.K_1, pg.K_2, pg.K_3, pg.K_4]:
+                    ataque_activo = True
+                    if event.key == pg.K_1:
+                        indice_ataque = 0
+                    elif event.key == pg.K_2:
+                        indice_ataque = 1
+                    elif event.key == pg.K_3:
+                        indice_ataque = 2
+                    elif event.key == pg.K_4:
+                        indice_ataque = 3
             '''if event.key == pg.K_1:
                 # Atacar automáticamente con el jugador actual
                 if entidad_actual and entidad_actual.equipo == "jugador":
