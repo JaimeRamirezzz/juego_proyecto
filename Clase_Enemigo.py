@@ -5,16 +5,17 @@ class Enemy:
     _id_counter = 10000 # para dar prioridad a los personajes jugables
     
     # MODIFICADO: Añadido 'nombre' a los parámetros, ya que el bucle lo necesita para los prints
-    def __init__(self, nombre, start_node, vida, mobility, velocidad, level=1, equipo="enemigo"):
+    def __init__(self, nombre, start_node, vida, mobility, velocidad, defensa, ataque, level=1, equipo="enemigo"):
         self.nombre = nombre # <--- NUEVO
         self.current_node = start_node
         #Cambiado a hp_actual y hp_max para coincidir con la lógica gráfica
         self.hp_max = vida
         self.hp_actual = vida
+        self.defensa = defensa
         self.max_mobility = mobility
         self.current_mobility = mobility
         self.color = () 
-        self.ataque = 3 
+        self.ataque = ataque 
         # guardamos la velocidad en una variable interna
         self.velocidad_base = velocidad
         self.equipo = equipo
@@ -22,7 +23,7 @@ class Enemy:
         Enemy._id_counter += 1
         
         # NOTA: self.turn ha sido eliminado. ¡El árbitro (Enfrentamiento) ahora controla los turnos!
-        
+        self.en_defensa = False
         # subir nivel
         self.level = level
         self.experience = 0
@@ -150,7 +151,7 @@ class Enemy:
     # MODIFICADO: Se llama recibir_daño y usa hp_actual
     def recibir_daño(self, amount):
         # MODIFICADO: Ahora comprueba si el enemigo se está defendiendo
-        daño_final = amount
+        daño_final = amount/self.defensa
         if self.en_defensa:
             daño_final = int(amount * 0.5) # Reduce el daño a la mitad
             print(f" ¡Bloqueo! {self.nombre} mitigó parte del daño.")

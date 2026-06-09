@@ -122,7 +122,7 @@ class Enfrentamiento:
             return False
         
         self._jugadas += 1
-        self.entidad_actual = self.orden.pop()
+        self.paso_de_turno()
         
     def paso_de_turno(self):#Solo hace el cambio de turno
         for enemigo in self.enemigos:

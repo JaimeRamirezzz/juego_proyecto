@@ -349,7 +349,9 @@ class MapaProcedural:
             velocidad=stats.get("velocidad", 10),
             level=1,
             equipo="enemigo",
-            nombre=stats.get("nombre", "Enemigo")
+            nombre=stats.get("nombre", "Enemigo"),
+            defensa=stats["defensa"],
+            ataque=stats["ataque"]
         )
 
     def colocar_jugador(self, jugador):
