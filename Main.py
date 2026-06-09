@@ -152,7 +152,7 @@ class Enfrentamiento:
         if type(self.entidad_actual) == Arquero:
             if self.entidad_actual.atacar(indice):
                 casilla_toqueteada = self.tablero.casillas[destino[0]][destino[1]]
-                casilla_toqueteada.entidad.recivir_daño(self.entidad_actual.ataques[indice].potencia()*self.entidad_actual.ataque)
+                casilla_toqueteada.entidad.recibir_daño(self.entidad_actual.ataques[indice].potencia()*self.entidad_actual.ataque)
             else:
                 pass
         else:# por si da tiempo, para hacer que el resto de personajes solo ataquen a una distancia realista
@@ -258,12 +258,8 @@ while running:
         if event.type == pg.QUIT:
             running = False
         elif event.type == pg.KEYDOWN:
-            if event.key == pg.K_1:
-                aliados = pantalla_creacion.obtener_personajes()
-                pantalla_recompensa = PantallaRecompensa(font, GB_COLORS, aliados)
-                estado_partida = 4
             # Controles simples para probar
-            elif estado_partida == 0:
+            if estado_partida == 0:
                 if event.key == pg.K_SPACE:
                     estado_partida = 1
 
@@ -272,8 +268,6 @@ while running:
 
                 if terminado:
                     aliados = pantalla_creacion.obtener_personajes()
-                    personaje_a_mejorar = aliados[indice_recompensa]
-                    pantalla_recompensa = PantallaRecompensa(font, GB_COLORS, personaje_a_mejorar)
                     estado_partida = 2
                 
             elif estado_partida == 4:
@@ -375,6 +369,9 @@ while running:
     elif estado_partida == 3:
         if peleilla._verificar_fin_combate():
             if peleilla.ganador == 'victoria':
+                personaje_a_mejorar = aliados[indice_recompensa]
+                pantalla_recompensa = PantallaRecompensa(font, GB_COLORS, personaje_a_mejorar)
+                indice_recompensa = (indice_recompensa + 1) % 3
                 estado_partida=4
             else:
                 estado_partida=9
