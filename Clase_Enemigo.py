@@ -81,7 +81,7 @@ class Enemy:
             vivos = [i for i in objetivos_validos if i.esta_vivo()]
             if vivos:
                 # Ataca al más débil (puedes cambiar esta lógica luego Jaime)
-                objetivo = min([i for i in objetivos_validos if i.esta_vivo()], key=lambda x: x.hp_actual)
+                objetivo = max([i for i in objetivos_validos if i.esta_vivo()], key=lambda x: x.hp_actual)
                 daño = self.calculate_damage()
                 
                 # Faltaría la lógica de Moverse hacia él antes de atacar usando take_turn()
