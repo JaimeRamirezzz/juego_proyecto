@@ -30,7 +30,7 @@ class Personaje:
         self.max_mobility = velocidad
         self.current_mobility = velocidad
         self.aguante = 10
-        self.capacidad_aguante = self.aguante
+        self.capacidad_aguante = 0
          # posición para el mapa
         self.current_node = (0, 0)
         self.color = (100, 200, 255)  # AZUL CLARO
