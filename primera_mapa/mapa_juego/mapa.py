@@ -420,8 +420,14 @@ class MapaProcedural:
                 radio * 2,
                 radio * 2
             )
-            pygame.draw.rect(pantalla,(255, 50 ,50), rect_entidad)
-            pygame.draw.rect(pantalla, "#320000", rect_entidad, 2)
+            if not entidad.esta_vivo():
+                pygame.draw.rect(pantalla, (60, 60, 60), rect_entidad)
+                pygame.draw.rect(pantalla, (40, 40, 40), rect_entidad, 2)
+                pygame.draw.line(pantalla, (200, 0, 0), (centro_x - radio, centro_y - radio), (centro_x + radio, centro_y + radio), 3)
+                pygame.draw.line(pantalla, (200, 0, 0), (centro_x + radio, centro_y - radio), (centro_x - radio, centro_y + radio), 3)
+            else:
+             pygame.draw.rect(pantalla,(255, 50 ,50), rect_entidad)
+             pygame.draw.rect(pantalla, "#320000", rect_entidad, 2)
         
     def encontrar_camino(self, origen, destino):
         origen_id = origen[0] * self.ancho + origen[1]
