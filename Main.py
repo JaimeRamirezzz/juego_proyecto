@@ -309,9 +309,8 @@ while running:
                                 if not casilla_clickada.esta_ocupada() and not casilla_clickada.obstaculo:
                                     dist, camino = peleilla.tablero.encontrar_camino(peleilla.entidad_actual.current_node, destino)
                                     if dist <= peleilla.entidad_actual.max_mobility:
-                                        if dist <= peleilla.entidad_actual.esta_vivo():
-                                            casilla_actual.remover_entidad()
-                                            casilla_clickada.colocar_entidad(peleilla.entidad_actual)  
+                                        casilla_actual.remover_entidad()
+                                        casilla_clickada.colocar_entidad(peleilla.entidad_actual)  
 
                 elif event.button == 2: # Botón medio del ratón presionado
                     pass
