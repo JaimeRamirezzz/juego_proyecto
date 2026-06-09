@@ -49,7 +49,7 @@ class Personaje:
             if self.ataques[indice].coste() > self.capacidad_aguante:
                 return False
             else:
-                self.capacidad_aguante = self.ataques[indice].coste() > self.capacidad_aguante
+                self.capacidad_aguante -= self.ataques[indice].coste()
                 return True
         else:
             return False

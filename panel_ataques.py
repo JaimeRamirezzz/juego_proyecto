@@ -87,11 +87,10 @@ class PanelAtaques:
             pantalla.blit(font.render(f"Espacio: Mover", True, GB_COLORS["white"]), (420, 520))
             pantalla.blit(font.render(f"Enter: Pasa Turno", True, GB_COLORS["white"]), (420, 570))
             contador = 0
-            for j in range(4):
-                for i in personaje_actual.ataques:
-                    contador += 1
+            for i in personaje_actual.ataques:
+                contador += 1
 
-                    pantalla.blit(font.render(f"{contador}:{i.nombre()} C->{i.coste()}  D->{i.potencia()}", True, GB_COLORS["white"]), (20, 560+((contador/2)*50)))
+                pantalla.blit(font.render(f"{contador}:{i.nombre()} C->{i.coste()}  D->{i.potencia()}", True, GB_COLORS["white"]), (20, 560+((contador/2)*50)))
                 '''
                 columna = i % 2
                 fila = i // 2
