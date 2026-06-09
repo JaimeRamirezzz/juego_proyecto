@@ -117,7 +117,7 @@ class Enemy:
             if nodos_alcanzables:
                 # Elige un nodo al azar para escapar
                 nodo_escape = r.choice(nodos_alcanzables)
-                self.take_turn(master_path_table, master_distance_table, nodo_escape, master_distance_table)
+                self.take_turn(master_path_table, master_distance_table, nodo_escape, master_distance_table, tablero)
             else:
                 print(f" {self.nombre} está acorralado y no puede huir.")
 
