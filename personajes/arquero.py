@@ -8,7 +8,7 @@ class Arquero(Personaje):
             clase="Arquero",
             vida=20,
             ataque=5,
-            defensa=2,
+            defensa=6,
             velocidad=6,
             ataques=[],
             equipo=equipo
