@@ -445,33 +445,36 @@ class MapaProcedural:
     def get_rutas_disponibles(self, nodo_actual, max_distancia):
         """
         Para IA de enemigos: todas las casillas alcanzables dentro de distancia.
+        Utiliza la master_distance_table precalculada (Cero lag).
 
         nodo_actual: (fila, col)
         max_distancia: movilidad del personaje
-
         Retorna: dict {(fila,col): distancia, ...}
         """
-        alto, ancho = self.grid_costos.shape
         rutas = {}
+        
+        # 1. Convertimos la coordenada (fila, col) al ID numérico del nodo
+        origen_id = nodo_actual[0] * self.ancho + nodo_actual[1]
 
-        for y in range(alto):
-            for x in range(ancho):
-                if (y, x) == nodo_actual:
-                    continue
-                if not self.grid_caminable[y, x]:
-                    continue
+        # 2. Rescatamos todas las distancias desde este origen 
+        # (Esto se calculó en un segundo al crear el mapa, no hay que calcularlo ahora)
+        if origen_id in self.master_distance_table:
+            distancias_desde_origen = self.master_distance_table[origen_id]
 
-                dist, camino = dijkstra(
-                    self.grid_costos,
-                    self.grid_caminable,
-                    nodo_actual,
-                    (y, x)
-                )
-
-                if dist <= max_distancia and camino:
-                    rutas[(y, x)] = dist
+            # 3. Filtramos solo los destinos a los que podemos llegar con nuestra movilidad
+            for destino_id, dist in distancias_desde_origen.items():
+                # Si la distancia es válida (menor a max_distancia), no es el propio nodo (dist > 0),
+                # y no es un obstáculo infranqueable (dist != inf)
+                if 0 < dist <= max_distancia:
+                    # Convertimos el ID de vuelta a coordenadas (fila, columna)
+                    f = destino_id // self.ancho
+                    c = destino_id % self.ancho
+                    
+                    rutas[(f, c)] = dist
 
         return rutas
+
+    
     def actualizar_grid(self, fila, col):
     #actualiza los grids numpy cuando una casilla cambia.
     #Llama esto después de mover/colocar/quitar entidades.

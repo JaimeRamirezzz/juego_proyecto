@@ -1,4 +1,5 @@
 import numpy as np
+
 na = np.nan
 inf = np.inf
 
@@ -9,7 +10,14 @@ def dijkstra(graph, start):
     paths = {nodo: [start] for nodo in range(len(graph))}
 
     for _ in range(len(graph)):
-        min_distance_node = np.where(distances == distances[~visited].min())[0][0]
+        
+        # --- SOLUCIÓN AL BUG DIRECCIONAL ---
+        # 1. Obtenemos una lista segura SOLO con los índices de los nodos no visitados
+        nodos_no_visitados = np.where(~visited)[0] 
+        
+        # 2. Encontramos el nodo con la distancia mínima estrictamente dentro de esa lista
+        min_distance_node = nodos_no_visitados[np.argmin(distances[nodos_no_visitados])]
+        # -----------------------------------
 
         for node in range(len(graph)):
             if not graph[min_distance_node, node] > 0:
@@ -25,6 +33,4 @@ def dijkstra(graph, start):
 
     distances_dict = {node: distances[node] for node in range(len(graph))}
 
-
     return paths, distances_dict
-
