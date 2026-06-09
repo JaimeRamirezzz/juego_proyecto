@@ -247,6 +247,7 @@ indice_recompensa = 0
 turno_ia_ejecutado = False
 ataque_activo = False
 planeando_movimiento = False
+indice_ataque = 0
 # BUCLE PRINCIPAL
 running = True
 while running:
