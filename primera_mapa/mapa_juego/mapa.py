@@ -203,11 +203,11 @@ class MapaProcedural:
         TipoBioma.PANTANO: (100, 140, 100),
     } # por si no hay pngs de respaldo
     IMAGENES_BIOMA = {
-        TipoBioma.AGUA_PROFUNDA: "imagen/agua(2).png",
-        TipoBioma.PRADERA: "imagen/hierba(1).png",
-        TipoBioma.BOSQUE: "imagen/madera(3).png",  
-        TipoBioma.LAVA: "imagen/lava(4).png",
-        TipoBioma.PANTANO: "imagen/tierra(0).png"
+        TipoBioma.AGUA_PROFUNDA: "agua(2).png",
+        TipoBioma.PRADERA: "hierba(1).png",
+        TipoBioma.BOSQUE: "madera(3).png",  
+        TipoBioma.LAVA: "lava(4).png",
+        TipoBioma.PANTANO: "tierra.png"
     }
 
     PROPIEDADES_BIOMA = {
@@ -562,7 +562,7 @@ if __name__ == "__main__":
         alto=ALTO_CASILLAS_MAPA, 
         tamaño_casilla=TAMANO_CASILLA, 
         config=config_inicial,
-        carpeta_sprites="primera mapa/imagen" 
+        carpeta_sprites="mapa_juego" 
     )
 
     ejecutando = True
